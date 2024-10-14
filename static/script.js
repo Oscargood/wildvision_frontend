@@ -98,19 +98,19 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     // Construct the filename based on layer type
     let filename;
     if (layerType === 'animal_behaviour') {
-        filename = `./data/deployment_241014/static/animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `var/data/static/animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'temperature') {
-        filename = `./data/deployment_241014/static/weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `var/data/static/weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'rain') {
-        filename = `./data/deployment_241014/static/weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `var/data/static/weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'wind_speed') {
-        filename = `./data/deployment_241014/static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `var/data/static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'cloud_cover') {
-        filename = `./data/deployment_241014/static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `var/data/static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'red_deer_location') {
-        filename = `./data/deployment_241014/static/animal/red_deer_location.geojson`;
+        filename = `var/data/static/animal/red_deer_location.geojson`;
     } else if (layerType === 'vegetation') {
-        filename = `./data/deployment_241014/static/vegetation/vegetation_native.geojson`;
+        filename = `var/data/static/vegetation/vegetation_native.geojson`;
     } else {
         console.error(`Unknown layer type: ${layerType}`);
         return;
