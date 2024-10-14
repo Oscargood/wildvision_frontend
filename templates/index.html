@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="data:,">
+    <meta charset="UTF-8">
+    <title>Wildvision</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+    <!-- Main container with adjustable background -->
+    <div id="container">
+        <!-- Buttons above the map -->
+        <div id="top-buttons">
+            <button id="infoButton">Info</button>
+            <div id="static_text_box">General animal behaviour notes</div>
+        </div>
+        <!-- Map Section -->
+        <div id="map"></div>
+        <!-- Day and Time Selection Display -->
+        <div id="day-time-selection">
+            Selected: <span id="day-time-text">Today Morning</span>
+        </div>
+        <!-- Controls Section -->
+        <div id="controls">
+            <div id="date-time-slider-container">
+                <label for="DateTimeSlider">Date and Time: <span id="DateTimeSliderLabel">Date and Time</span></label><br>
+                <input type="range" id="DateTimeSlider" min="0" step="1">
+                <button id="DateTimePlayPause">Play</button>
+            </div>
+            <div id="layer-toggles">
+                <label class="layer-label">
+                    <input type="checkbox" name="layer-toggle" id="animal_behaviour" class="layer-button" checked>
+                    Animal Behaviour
+                </label>
+                <label class="layer-label">
+                    <input type="checkbox" name="layer-toggle" id="temperature" class="layer-button">
+                    Temperature
+                </label>
+                <label class="layer-label">
+                    <input type="checkbox" name="layer-toggle" id="rain" class="layer-button">
+                    Rain
+                </label>
+                <label class="layer-label">
+                    <input type="checkbox" name="layer-toggle" id="Wind_speed" class="layer-button">
+                    Wind Speed
+                </label>
+                <label class="layer-label">
+                    <input type="checkbox" name="layer-toggle" id="cloud_cover" class="layer-button">
+                    Cloud Cover
+                </label>
+                <label class="layer-label">
+                    <input type="checkbox" name="layer-toggle" id="red_deer_location" class="layer-button">
+                    Red Deer Distribution
+                </label>
+                <label class="layer-label">
+                    <input type="checkbox" name="layer-toggle" id="Vegetation" class="layer-button">
+                    Vegetation
+                </label>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Popup -->
+    <div id="popupModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p>Welcome to Wildvision! Use the sliders and checkboxes to explore the data layers.</p>
+        </div>
+    </div>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
