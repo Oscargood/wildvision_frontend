@@ -85,32 +85,31 @@ function getDatesArray(numDays) {
 // Get the unique dates
 const uniqueDates = getDatesArray(4); // 4 days' worth of files
 
-// Function to plot data layers based on selected date and time period
 const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     layerGroup.clearLayers(); // Clear existing layers
 
     const selectedDate = uniqueDates[dateIndex];
     const selectedTimePeriod = timePeriods[timeIndex];
-    
+
     // Logging for debugging
     console.log(`Plotting ${layerType} data for date: ${selectedDate} and time period: ${selectedTimePeriod}`);
 
     // Construct the filename based on layer type
     let filename;
     if (layerType === 'animal_behaviour') {
-        filename = `var/data/static/animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `static/animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'temperature') {
-        filename = `var/data/static/weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `static/weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'rain') {
-        filename = `var/data/static/weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `static/weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'wind_speed') {
-        filename = `var/data/static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'cloud_cover') {
-        filename = `var/data/static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'red_deer_location') {
-        filename = `var/data/static/animal/red_deer_location.geojson`;
+        filename = `static/animal/red_deer_location.geojson`;
     } else if (layerType === 'vegetation') {
-        filename = `var/data/static/vegetation/vegetation_native.geojson`;
+        filename = `static/vegetation/vegetation_native.geojson`;
     } else {
         console.error(`Unknown layer type: ${layerType}`);
         return;
@@ -120,7 +119,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     console.log(`Fetching data from: ${filename}`);
 
     try {
-        const res = await fetch(filename);
+        const res = await fetch(`/data/${filename}`);  // Updated fetch call
         if (!res.ok) {
             console.warn(`File not found: ${filename}`);
             return;
@@ -157,7 +156,6 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
         console.error(`Error fetching ${layerType} data for ${filename}:`, err);
     }
 };
-
 
 // Function to initialize the map and set up event listeners
 const initializeMap = () => {
