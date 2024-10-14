@@ -5,7 +5,7 @@ import re
 app = Flask(__name__)
 
 # Directory paths
-DIR = '/var/data/'  # deployed to render
+DIR = 'http://wildvision:10000/var/data/'  # deployed to render
 
 ANIMAL_DIR = os.path.join(DIR, 'static/animal/')
 WEATHER_DIR = os.path.join(DIR, 'static/weather/')
