@@ -63,27 +63,36 @@ var vegetationLayerGroup = L.layerGroup().addTo(map);
 let currentDateIndex = 0;
 let currentTimeIndex = 0;
 
-// Define the time periods as strings with leading zeros
-const timePeriods = ['01', '04', '07', '10', '13', '16', '19', '22'];
-
-// Function to get an array of dates in yymmdd format for the next 4 days
-function getDatesArray(numDays) {
-    const dates = [];
-    const today = new Date();
-    for (let i = 0; i < numDays; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        const yy = String(date.getFullYear()).slice(-2);
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const dd = String(date.getDate()).padStart(2, '0');
-        const yymmdd = yy + mm + dd;
-        dates.push(yymmdd);
+// Function to fetch available time periods for animal behaviour
+const fetchAnimalBehaviourTimes = async () => {
+    const response = await fetch('/animal_behaviour_times');
+    if (!response.ok) {
+        console.error('Failed to fetch animal behaviour times');
+        return [];
     }
-    return dates;
-}
+    return await response.json();
+};
 
-// Get the unique dates
-const uniqueDates = getDatesArray(4); // 4 days' worth of files
+// Function to fetch available weather times
+const fetchWeatherTimes = async () => {
+    const response = await fetch('/weather_times');
+    if (!response.ok) {
+        console.error('Failed to fetch weather times');
+        return {};
+    }
+    return await response.json();
+};
+
+// Fetch time periods for animal behaviour and weather data
+let uniqueDates = [];
+let weatherData = {};
+
+(async () => {
+    const animalBehaviourTimes = await fetchAnimalBehaviourTimes();
+    uniqueDates = animalBehaviourTimes.map(item => item.time); // Assuming this is how you want to populate dates
+
+    weatherData = await fetchWeatherTimes();
+})();
 
 // Function to plot data layers based on selected date and time period
 const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
@@ -98,19 +107,19 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     // Construct the filename based on layer type
     let filename;
     if (layerType === 'animal_behaviour') {
-        filename = `var/data/static/animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `./static/animal/animal_behaviour_${selectedDate}.geojson`; // Adjust as needed
     } else if (layerType === 'temperature') {
-        filename = `var/data/static/weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `./static/weather/temperature_${selectedDate}.geojson`; // Adjust as needed
     } else if (layerType === 'rain') {
-        filename = `var/data/static/weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `./static/weather/rain_${selectedDate}.geojson`; // Adjust as needed
     } else if (layerType === 'wind_speed') {
-        filename = `var/data/static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `./static/weather/wind_speed_${selectedDate}.geojson`; // Adjust as needed
     } else if (layerType === 'cloud_cover') {
-        filename = `var/data/static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `./static/weather/cloud_cover_${selectedDate}.geojson`; // Adjust as needed
     } else if (layerType === 'red_deer_location') {
-        filename = `var/data/static/animal/red_deer_location.geojson`;
+        filename = `/animal_location`; // Directly access the Flask route
     } else if (layerType === 'vegetation') {
-        filename = `var/data/static/vegetation/vegetation_native.geojson`;
+        filename = `/vegetation`; // Directly access the Flask route
     } else {
         console.error(`Unknown layer type: ${layerType}`);
         return;
@@ -157,6 +166,9 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
         console.error(`Error fetching ${layerType} data for ${filename}:`, err);
     }
 };
+
+// Rest of the JavaScript code remains unchanged...
+
 
 
 // Function to initialize the map and set up event listeners
