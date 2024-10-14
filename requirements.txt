@@ -1,2 +1,2 @@
 Flask==2.3.2              # Adjust to your Flask version
-
+gunicorn==20.1.0 
