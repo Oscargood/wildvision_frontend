@@ -6,8 +6,8 @@ app = Flask(__name__)
 
 # Directory paths
 
-DIR = '~/Documents/Software/Python/wildvision_backend/'     # local mac
-#DIR = '~/var/data/'     # deplyed to render
+# DIR = '~/Documents/Software/Python/wildvision_backend/'     # local mac
+DIR = '~/var/data/'     # deplyed to render
 
 ANIMAL_DIR = os.path.join(DIR,'static/animal/')
 WEATHER_DIR = os.path.join(DIR,'static/weather/')
@@ -51,7 +51,7 @@ def weather_times():
 # Serve index.html
 @app.route('/')
 def home():
-    return send_from_directory('static', 'index.html')
+    return send_from_directory('templates', 'index.html')
 
 # Serve static files (GeoJSON, CSS, JS)
 @app.route('/static/<path:path>', methods=['GET'])
