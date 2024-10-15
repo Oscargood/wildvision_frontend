@@ -15,48 +15,45 @@
         <div id="top-buttons">
             <button id="infoButton">Info</button>
             <div id="static_text_box">General animal behaviour notes</div>
-            <div id="layerToggleContainer" class="layer-toggle-box">
-                <div class="menu-label" onclick="toggleMenu('layerMenu')">Layer Toggles</div>
-                <div id="layerMenu" class="menu-content">
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="animal_behaviour" class="layer-button" checked>
-                        Animal Behaviour
-                    </label><br>
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="temperature" class="layer-button">
-                        Temperature
-                    </label><br>
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="rain" class="layer-button">
-                        Rain
-                    </label><br>
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="Wind_speed" class="layer-button">
-                        Wind Speed
-                    </label><br>
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="cloud_cover" class="layer-button">
-                        Cloud Cover
-                    </label><br>
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="red_deer_location" class="layer-button">
-                        Red Deer Distribution
-                    </label><br>
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="Vegetation" class="layer-button">
-                        Vegetation
-                    </label><br>
-                </div>
-            </div>
         </div>
         <div id="map">
             <!-- Map will be rendered here -->
+            <div id="layerToggleContainer" class="layer-toggle-box">
+                <label class="layer-label">
+                    <input type="radio" name="layer-toggle" id="animal_behaviour" class="layer-button" checked>
+                    Animal Behaviour
+                </label>
+                <label class="layer-label">
+                    <input type="radio" name="layer-toggle" id="temperature" class="layer-button">
+                    Temperature
+                </label>
+                <label class="layer-label">
+                    <input type="radio" name="layer-toggle" id="rain" class="layer-button">
+                    Rain
+                </label>
+                <label class="layer-label">
+                    <input type="radio" name="layer-toggle" id="Wind_speed" class="layer-button">
+                    Wind Speed
+                </label>
+                <label class="layer-label">
+                    <input type="radio" name="layer-toggle" id="cloud_cover" class="layer-button">
+                    Cloud Cover
+                </label>
+                <label class="layer-label">
+                    <input type="radio" name="layer-toggle" id="red_deer_location" class="layer-button">
+                    Red Deer Distribution
+                </label>
+                <label class="layer-label">
+                    <input type="radio" name="layer-toggle" id="Vegetation" class="layer-button">
+                    Vegetation
+                </label>
+            </div>
         </div>
         <div id="day-time-selection">
             Selected: <span id="day-time-text">Today Morning</span>
         </div>
         <div id="date-time-slider-container">
-            <label for="DateTimeSlider"> <span id="DateTimeSliderLabel"></span></label><br>
+            <label for="DateTimeSlider">Date and Time: <span id="DateTimeSliderLabel">Date and Time</span></label><br>
             <input type="range" id="DateTimeSlider" min="0" step="1" class="slider">
             <button id="DateTimePlayPause">Play</button>
         </div>
@@ -70,16 +67,5 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script>
-        // JavaScript to toggle the menu
-        function toggleMenu(menuId) {
-            const menuContent = document.getElementById(menuId);
-            if (menuContent.style.display === "none" || menuContent.style.display === "") {
-                menuContent.style.display = "block";
-            } else {
-                menuContent.style.display = "none";
-            }
-        }
-    </script>
 </body>
 </html>
