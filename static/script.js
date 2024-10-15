@@ -201,53 +201,45 @@ const initializeMap = () => {
 // Add a flag variable to indicate programmatic changes
 let isProgrammaticChange = false;
 
+// Add event listeners for the dropdown
+const layerDropdownBtn = document.getElementById('layerDropdownBtn');
+const layerDropdown = document.getElementById('layerDropdown');
+
+// Toggle the dropdown when the button is clicked
+layerDropdownBtn.addEventListener('click', (event) => {
+    event.stopPropagation(); // Prevent event from bubbling up
+    layerDropdown.classList.toggle('show');
+});
+
+// Close the dropdown if the user clicks outside of it
+window.addEventListener('click', (event) => {
+    if (!layerDropdown.contains(event.target)) {
+        layerDropdown.classList.remove('show');
+    }
+});
+
+// Adjusted setupLayerToggles function
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
 
     layerButtons.forEach(button => {
         button.addEventListener('change', async (event) => {
-            // If a programmatic change is in progress, ignore this event
-            if (isProgrammaticChange) {
-                return;
-            }
-
             // Remove all layers from the map
             removeAllLayers();
 
-            if (event.target.checked) {
-                // Begin programmatic changes
-                isProgrammaticChange = true;
+            const selectedLayerId = event.target.id;
 
-                // Uncheck all other checkboxes
-                layerButtons.forEach(btn => {
-                    if (btn !== button) {
-                        btn.checked = false;
-                    }
-                });
-
-                // End programmatic changes
-                isProgrammaticChange = false;
-
-                const layerGroup = getLayerGroupById(event.target.id);
-
-                // Layer is checked, plot the data for the current date and time period
-                await plotDataLayer(layerGroup, event.target.id, currentDateIndex, currentTimeIndex);
+            if (selectedLayerId !== 'none') {
+                const layerGroup = getLayerGroupById(selectedLayerId);
+                // Layer is selected, plot the data for the current date and time period
+                await plotDataLayer(layerGroup, selectedLayerId, currentDateIndex, currentTimeIndex);
                 map.addLayer(layerGroup); // Add the layer group to the map
-            } else {
-                // Checkbox was unchecked
-                // Ensure all checkboxes are unchecked
-                isProgrammaticChange = true;
-                layerButtons.forEach(btn => {
-                    btn.checked = false;
-                });
-                isProgrammaticChange = false;
-
-                // No layers are displayed; layers have already been removed by removeAllLayers()
             }
+            // If 'none' is selected, no layers are displayed (already removed)
+            layerDropdown.classList.remove('show');
         });
     });
 };
-
 
 // Helper function to get the corresponding layer group by checkbox ID
 const getLayerGroupById = (id) => {
@@ -315,7 +307,3 @@ const initializePlayPauseButtons = () => {
         });
     }
 };
-
-// Call initializeMap when the script loads
-// Note: Since initializeMap() is already called on window load, you can remove the duplicate call if present.
-
