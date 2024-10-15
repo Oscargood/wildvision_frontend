@@ -58,28 +58,21 @@ button.selected {
     background-color: var(--background-color, #252424); /* Adjustable map background */
 }
 
-/* Styling for the slider container */
-#bottom-slider {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-}
-
 /* Styling for the range slider */
 .slider {
     width: 90%;
     -webkit-appearance: none;
     appearance: none;
     height: 10px;
-    background: #ccc;
+    background: #000;
     outline: none;
-    opacity: 0.9;
+    opacity: 1;
     transition: opacity .2s;
     border-radius: 5px;
 }
 
 .slider:hover {
-    opacity: 1;
+    opacity: 0.9;
 }
 
 /* Custom handle styling */
