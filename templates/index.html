@@ -11,12 +11,10 @@
 <body>
     <!-- Main container with adjustable background -->
     <div id="container">
-        <!-- Buttons above the map -->
+        <!-- Buttons and layer toggles above the map -->
         <div id="top-buttons">
             <button id="infoButton">Info</button>
             <div id="static_text_box">General animal behaviour notes</div>
-        </div>
-        <div id="map">
             <div id="layerToggleContainer" class="layer-toggle-box">
                 <div class="menu-label" onclick="toggleMenu('layerMenu')">Layer Toggles</div>
                 <div id="layerMenu" class="menu-content">
@@ -51,13 +49,16 @@
                 </div>
             </div>
         </div>
+        <div id="map">
+            <!-- Map will be rendered here -->
+        </div>
+        <div id="day-time-selection">
+            Selected: <span id="day-time-text">Today Morning</span>
+        </div>
         <div id="date-time-slider-container">
             <label for="DateTimeSlider">Date and Time: <span id="DateTimeSliderLabel">Date and Time</span></label><br>
             <input type="range" id="DateTimeSlider" min="0" step="1" class="slider">
             <button id="DateTimePlayPause">Play</button>
-        </div>
-        <div id="day-time-selection">
-            Selected: <span id="day-time-text">Today Morning</span>
         </div>
     </div>
     <div id="popupModal" class="modal">
