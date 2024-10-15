@@ -142,3 +142,29 @@ button.selected {
     text-decoration: none;
     cursor: pointer;
 }
+
+/* Additional styles for the menu */
+.menu {
+    margin: 10px 0;
+    background-color: #333;
+    color: #fff;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.menu-label {
+    cursor: pointer;
+    padding: 5px;
+    background-color: #444;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.menu-content {
+    display: none;
+    padding-left: 15px;
+}
+
+.menu-content input {
+    margin-right: 5px;
+}
