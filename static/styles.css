@@ -54,6 +54,7 @@ button.selected {
 
 /* Container for the map */
 #map {
+    position: relative; /* Added position relative */
     width: 100%;
     height: 600px;
     background-color: var(--background-color, #252424); /* Adjustable map background */
@@ -64,11 +65,11 @@ button.selected {
     position: absolute; /* Absolute positioning */
     top: 10px; /* Adjust as needed */
     left: 10px; /* Adjust as needed */
-    background-color: rgba(255, 255, 255, 0.5); /* 50% opacity */
+    background-color: rgba(255, 255, 255, 0.7); /* Slightly increased opacity for better visibility */
     border-radius: 5px; /* Rounded corners */
     padding: 10px; /* Inner padding */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
-    z-index: 100; /* Higher z-index for visibility */
+    z-index: 1000; /* Increased z-index for visibility over map tiles */
 }
 
 /* Menu content styles */
