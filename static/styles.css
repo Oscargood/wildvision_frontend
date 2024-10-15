@@ -59,8 +59,13 @@ button.selected {
 }
 
 /* Styling for the range slider */
+#date-time-slider-container {
+    width: 90%; /* Ensure the container is 90% of the width */
+    margin: 0 auto; /* Center the container */
+}
+
 .slider {
-    width: 90%;
+    width: 100%; /* Full width of the parent container */
     -webkit-appearance: none;
     appearance: none;
     height: 10px;
@@ -98,7 +103,7 @@ button.selected {
 #day-time-selection {
     text-align: center;
     font-size: 18px;
-    color: #fff;
+    color: #ffffff; /* Make text color white */
     margin-top: 20px;
 }
 
