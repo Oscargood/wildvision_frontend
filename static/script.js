@@ -198,8 +198,8 @@ const initializeMap = () => {
     setupLayerToggles();
 };
 
-// // Add a flag variable to indicate programmatic changes
-// let isProgrammaticChange = false;
+// Add a flag variable to indicate programmatic changes
+let isProgrammaticChange = false;
 
 // Add event listeners for the dropdown
 const layerDropdownBtn = document.getElementById('layerDropdownBtn');
