@@ -76,7 +76,7 @@ button.selected {
 
 /* Dropdown content (hidden by default) */
 .dropdown-content {
-    display: block; /* Hidden by default */
+    display: none; /* Hidden by default */
     position: absolute;
     background-color: #f9f9f9; /* Light grey background */
     min-width: 200px; /* Adjust as needed */
@@ -111,7 +111,7 @@ button.selected {
 .layer-toggle-box {
     position: absolute; /* Absolute positioning */
     top: 10px; /* Adjust as needed */
-    right: 10px; /* Adjust as needed */
+    right: 50px; /* Adjust as needed */
     background-color: rgba(255, 255, 255, 0.7); /* Slightly increased opacity for better visibility */
     border-radius: 5px; /* Rounded corners */
     padding: 10px; /* Inner padding */
