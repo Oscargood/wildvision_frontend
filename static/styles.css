@@ -4,10 +4,9 @@ body {
 
 /* Wrapper/container for map and buttons with adjustable background */
 #container {
-    background-color: var(--container-bg-color, #2b2929); /* Adjustable background */
+    background-color: var(--container-bg-color, #2b2929);
     display: flex;
     flex-direction: column; /* Stack the content vertically */
-    position: relative; /* Position relative for the toggle box and slider */
 }
 
 #top-buttons {
@@ -19,12 +18,12 @@ body {
 }
 
 #infoButton {
-    padding: var(--button-padding, 10px 20px);
-    font-size: var(--button-font-size, 16px);
-    background-color: var(--button-bg-color, rgb(210, 154, 66));
-    color: var(--button-text-color, rgb(15, 10, 5));
-    border: var(--button-border, 2px solid black);
-    border-radius: var(--button-border-radius, 5px);
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: rgb(210, 154, 66);
+    color: rgb(15, 10, 5);
+    border: 2px solid black;
+    border-radius: 5px;
     cursor: pointer;
     margin-right: 20px; /* Space between button and text box */
 }
@@ -56,38 +55,37 @@ button.selected {
 #map {
     width: 100%;
     height: 600px;
-    background-color: var(--background-color, #252424); /* Adjustable map background */
+    position: relative; /* Position relative for the toggle box */
 }
 
-/* Layer toggle box styles */
-.layer-toggle-box {
-    position: absolute; /* Absolute positioning */
-    top: 10px; /* Adjust as needed */
-    left: 10px; /* Adjust as needed */
-    background-color: rgba(255, 255, 255, 0.5); /* 50% opacity */
-    border-radius: 5px; /* Rounded corners */
-    padding: 10px; /* Inner padding */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
-    z-index: 2; /* Higher z-index for visibility */
+/* Layer toggle container positioned on top of the map */
+#layer-toggles {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(51, 51, 51, 0.8); /* Semi-transparent dark background */
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Ensure it's above the map */
 }
 
-/* Menu content styles */
-.layer-label {
-    display: block; /* Stack labels vertically */
-    color: #000; /* Text color for labels */
+#layer-toggles label {
+    display: block; /* Each toggle on a new line */
+    margin-bottom: 5px;
+    color: #ffffff;
 }
 
-/* Date-time slider styles */
+/* Styling for the range slider container */
 #date-time-slider-container {
-    width: 90%; /* Ensure it takes the full width of the map */
-    background: rgba(255, 255, 255, 0.5); /* 50% opacity background */
+    width: 90%; /* Ensure the container is 90% of the width */
+    margin: 20px auto; /* Center the container with spacing */
+    background: rgba(255, 255, 255, 0.5); /* Semi-transparent background */
     padding: 10px; /* Inner padding */
     border-radius: 5px; /* Rounded corners */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
-    margin: 20px auto; /* Center the slider and add margin */
 }
 
-/* Styling for the range slider */
 .slider {
     width: 100%; /* Full width of the parent container */
     -webkit-appearance: none;
