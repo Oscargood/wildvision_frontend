@@ -265,21 +265,23 @@ const updateLayersForSelectedDateAndTime = (dateIndex, timeIndex) => {
     });
 };
 
-// Function to initialize Play/Pause button for the combined slider
 const initializePlayPauseButtons = () => {
     const dateTimePlayPauseBtn = document.getElementById('DateTimePlayPause');
+    const dateTimeSlider = document.getElementById('DateTimeSlider');
+    const dateTimeLabel = document.getElementById('DateTimeSliderLabel');
+    const totalPeriods = uniqueDates.length * timePeriods.length;
+
     if (dateTimePlayPauseBtn) {
         dateTimePlayPauseBtn.addEventListener('click', () => {
-            if (dateTimeSliderInterval === null) {
+            if (!dateTimeSliderInterval) {
                 dateTimePlayPauseBtn.textContent = 'Pause';
                 dateTimeSliderInterval = setInterval(() => {
-                    const combinedIndex = (currentDateIndex * timePeriods.length + currentTimeIndex + 1) % totalPeriods;
+                    const combinedIndex = (parseInt(dateTimeSlider.value) + 1) % totalPeriods;
                     dateTimeSlider.value = combinedIndex;
                     currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
                     currentTimeIndex = combinedIndex % timePeriods.length;
 
-                    dateTimeLabel.textContent = `${uniqueDates[currentDateIndex]} - Time Period: ${timePeriods[currentTimeIndex]}`;
-
+                    updateDisplayedDate();
                     // Update layers for the new combined date and time period
                     updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
                 }, 1000); // Change every 1 second
