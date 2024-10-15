@@ -12,7 +12,7 @@ body {
 #top-buttons {
     display: flex;
     align-items: center;
-    justify-content: center; /* Center items horizontally */
+    justify-content: space-between; /* Space out items horizontally */
     padding: 20px;
     background-color: var(--container-bg-color, #2b2929);
 }
@@ -57,39 +57,30 @@ button.selected {
     height: 600px;
     background-color: var(--background-color, #252424); /* Adjustable map background */
     position: relative; /* Position relative for the toggle box and slider */
-    z-index: 1; /* Ensure map is below the overlays */
 }
 
 /* Layer toggle box styles */
 .layer-toggle-box {
-    position: absolute; /* Absolute positioning */
-    top: 10px; /* Adjust as needed */
-    right: 10px; /* Adjust as needed */
-    background-color: #333 1; /* 50% opacity */
+    background-color: rgba(255, 255, 255, 0.5); /* 50% opacity */
     border-radius: 5px; /* Rounded corners */
     padding: 10px; /* Inner padding */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
-    z-index: 2; /* Higher z-index for visibility */
+    margin-left: 20px; /* Space on the left */
 }
 
+/* Menu label styles */
 .menu-label {
     cursor: pointer;
     padding: 5px;
     background-color: #444;
     border-radius: 5px;
     margin-bottom: 5px;
-    z-index: 2;
 }
 
+/* Menu content styles */
 .menu-content {
     display: none; /* Initially hidden */
     padding-left: 15px; /* Indent for radio buttons */
-    z-index: 2;
-}
-
-.menu-content input {
-    margin-right: 5px; /* Space between radio button and label */
-    z-index: 2;
 }
 
 /* Date-time slider styles */
@@ -99,7 +90,7 @@ button.selected {
     padding: 10px; /* Inner padding */
     border-radius: 5px; /* Rounded corners */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
-    z-index: 10; /* Higher z-index for visibility */
+    margin: 20px auto; /* Center the slider and add margin */
 }
 
 /* Styling for the range slider */
