@@ -51,13 +51,15 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 // Create layer groups for each type of data
-var animalLayerGroup = L.layerGroup().addTo(map);
-var tempLayerGroup = L.layerGroup().addTo(map);
-var rainLayerGroup = L.layerGroup().addTo(map);
-var windLayerGroup = L.layerGroup().addTo(map);
-var cloudLayerGroup = L.layerGroup().addTo(map);
-var redDeerLayerGroup = L.layerGroup().addTo(map);
-var vegetationLayerGroup = L.layerGroup().addTo(map);
+var layerGroups = {
+    'animal_behaviour': L.layerGroup().addTo(map),
+    'temperature': L.layerGroup(),
+    'rain': L.layerGroup(),
+    'wind_speed': L.layerGroup(),
+    'cloud_cover': L.layerGroup(),
+    'red_deer_location': L.layerGroup(),
+    'vegetation': L.layerGroup(),
+};
 
 // Variables to store date and time period indices
 let currentDateIndex = 0;
@@ -92,10 +94,11 @@ function updateDisplayedDate() {
     dateDisplay.textContent = `${selectedDate.readable} - ${selectedDate.date}`;
 }
 
+// Function to plot data layers based on selected date and time period
 const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     layerGroup.clearLayers(); // Clear existing layers
 
-    const selectedDate = uniqueDates[dateIndex].yymmdd; // Use the yymmdd format
+    const selectedDate = uniqueDates[dateIndex].yymmdd;
     const selectedTimePeriod = timePeriods[timeIndex];
 
     // Construct the filename based on layer type
@@ -119,27 +122,29 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
         return;
     }
 
-    // Fetch the GeoJSON data
+    // Log the constructed filename
+    console.log(`Fetching data from: ${filename}`);
+
     try {
-        const res = await fetch(`/data/${filename}`);
+        const res = await fetch(`/data/${filename}`);  // Updated fetch call
         if (!res.ok) {
             console.warn(`File not found: ${filename}`);
             return;
         }
         const data = await res.json();
 
-        // Create and add GeoJSON layer to the specified layer group
+        // Create a GeoJSON layer
         const geoJsonLayer = L.geoJSON(data, {
-            style: function (feature) {
+            style: function(feature) {
                 return {
                     color: feature.properties.color || '#ff0000',
                     fillColor: feature.properties.color || '#ff0000',
                     weight: 1,
-                    opacity: 1,
+                    opacity: 0.5,
                     fillOpacity: 0.5,
                 };
             },
-            onEachFeature: function (feature, layer) {
+            onEachFeature: function(feature, layer) {
                 const props = feature.properties;
                 const popupContent = `
                     <strong>${layerType.replace('_', ' ')} Data</strong><br>
@@ -151,18 +156,17 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
             },
         });
 
-        // Add the layer to the map
+        // Add the GeoJSON layer to the respective layer group
         layerGroup.addLayer(geoJsonLayer);
+
     } catch (err) {
         console.error(`Error fetching ${layerType} data for ${filename}:`, err);
     }
 };
 
-
 // Function to initialize the map and set up event listeners
 const initializeMap = () => {
     const dateTimeSlider = document.getElementById('DateTimeSlider');
-    const dateTimeLabel = document.getElementById('DateTimeSliderLabel');
     const totalPeriods = uniqueDates.length * timePeriods.length;
 
     if (totalPeriods > 0) {
@@ -170,9 +174,7 @@ const initializeMap = () => {
         updateDisplayedDate(); // Set the initial displayed date
 
         // Plot all layers for the first date and time period based on default selection
-        updateLayersForSelectedDateAndTime(0, 0);
-    } else {
-        dateTimeLabel.textContent = 'No Data Available';
+        updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
     }
 
     // Add event listener to the combined slider
@@ -182,15 +184,10 @@ const initializeMap = () => {
         currentTimeIndex = combinedIndex % timePeriods.length;
 
         updateDisplayedDate(); // Update displayed date
-        // Update layers for the new date and time period
         updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
     });
 
-    // Initialize Play/Pause button for the combined slider
     initializePlayPauseButtons();
-    console.log("Map initialized with data layers.");
-
-    // Set up toggle layers
     setupLayerToggles();
 };
 
@@ -198,53 +195,33 @@ const initializeMap = () => {
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
     layerButtons.forEach(button => {
-        button.addEventListener('change', (event) => {
-            const layerGroup = getLayerGroupById(event.target.id);
+        button.addEventListener('change', async (event) => {
+            const layerGroup = layerGroups[event.target.id];
             if (event.target.checked) {
-                // Layer is checked, plot the data for the current date and time period
-                plotDataLayer(layerGroup, event.target.id.replace('toggle', '').toLowerCase(), currentDateIndex, currentTimeIndex);
+                await plotDataLayer(layerGroup, event.target.id.toLowerCase(), currentDateIndex, currentTimeIndex);
+                map.addLayer(layerGroup); // Add the layer to the map when checked
             } else {
-                // Layer is unchecked, remove the layer from the map
-                map.removeLayer(layerGroup);
+                map.removeLayer(layerGroup); // Remove the layer from the map when unchecked
             }
         });
     });
 };
 
-// Helper function to get the corresponding layer group by checkbox ID
-const getLayerGroupById = (id) => {
-    switch (id) {
-        case 'animal_behaviour':
-            return animalLayerGroup;
-        case 'temperature':
-            return tempLayerGroup;
-        case 'rain':
-            return rainLayerGroup;
-        case 'Wind_speed': // Ensure case sensitivity matches the HTML
-            return windLayerGroup;
-        case 'cloud_cover':
-            return cloudLayerGroup;
-        case 'red_deer_location':
-            return redDeerLayerGroup;
-        case 'Vegetation': // Ensure case sensitivity matches the HTML
-            return vegetationLayerGroup;
-        default:
-            console.error(`Unknown layer group for ID: ${id}`);
-            return null;
-    }
-};
-
-// Function to update layers based on selected date and time period
+// Helper function to update all layers for selected date and time period
 const updateLayersForSelectedDateAndTime = (dateIndex, timeIndex) => {
     const layerSelections = document.querySelectorAll('input[name="layer-toggle"]:checked');
     layerSelections.forEach(selection => {
-        plotDataLayer(getLayerGroupById(selection.id), selection.id.replace('toggle', '').toLowerCase(), dateIndex, timeIndex);
+        plotDataLayer(layerGroups[selection.id], selection.id.toLowerCase(), dateIndex, timeIndex);
     });
 };
 
 // Function to initialize Play/Pause button for the combined slider
 const initializePlayPauseButtons = () => {
     const dateTimePlayPauseBtn = document.getElementById('DateTimePlayPause');
+    let dateTimeSliderInterval = null;
+    const dateTimeSlider = document.getElementById('DateTimeSlider');
+    const totalPeriods = uniqueDates.length * timePeriods.length;
+
     if (dateTimePlayPauseBtn) {
         dateTimePlayPauseBtn.addEventListener('click', () => {
             if (dateTimeSliderInterval === null) {
@@ -255,9 +232,7 @@ const initializePlayPauseButtons = () => {
                     currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
                     currentTimeIndex = combinedIndex % timePeriods.length;
 
-                    dateTimeLabel.textContent = `${uniqueDates[currentDateIndex]} - Time Period: ${timePeriods[currentTimeIndex]}`;
-
-                    // Update layers for the new combined date and time period
+                    updateDisplayedDate();
                     updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
                 }, 1000); // Change every 1 second
             } else {
@@ -267,27 +242,6 @@ const initializePlayPauseButtons = () => {
             }
         });
     }
-};
-
-// Initialize toggles for layers
-const toggleLayer = (radioName, layerGroup) => {
-    const radioButtons = document.getElementsByName(radioName);
-    radioButtons.forEach(radio => {
-        radio.addEventListener('change', (event) => {
-            if (event.target.checked) {
-                // Clear existing layers
-                map.removeLayer(animalLayerGroup);
-                map.removeLayer(tempLayerGroup);
-                map.removeLayer(rainLayerGroup);
-                map.removeLayer(windLayerGroup);
-                map.removeLayer(cloudLayerGroup);
-                map.removeLayer(redDeerLayerGroup);
-                map.removeLayer(vegetationLayerGroup);
-                // Add selected layer to the map
-                map.addLayer(layerGroup);
-            }
-        });
-    });
 };
 
 // Call initializeMap when the script loads
