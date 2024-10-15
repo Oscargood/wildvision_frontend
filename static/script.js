@@ -198,35 +198,56 @@ const initializeMap = () => {
     setupLayerToggles();
 };
 
-// Updated setupLayerToggles function
+// Add a flag variable to indicate programmatic changes
+let isProgrammaticChange = false;
+
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
 
     layerButtons.forEach(button => {
         button.addEventListener('change', async (event) => {
+            // If a programmatic change is in progress, ignore this event
+            if (isProgrammaticChange) {
+                return;
+            }
+
             // Remove all layers from the map
             removeAllLayers();
 
-            // Uncheck all other checkboxes except the one just changed
-            layerButtons.forEach(btn => {
-                if (btn !== button) {
-                    btn.checked = false;
-                }
-            });
-
-            const layerGroup = getLayerGroupById(event.target.id);
-
             if (event.target.checked) {
+                // Begin programmatic changes
+                isProgrammaticChange = true;
+
+                // Uncheck all other checkboxes
+                layerButtons.forEach(btn => {
+                    if (btn !== button) {
+                        btn.checked = false;
+                    }
+                });
+
+                // End programmatic changes
+                isProgrammaticChange = false;
+
+                const layerGroup = getLayerGroupById(event.target.id);
+
                 // Layer is checked, plot the data for the current date and time period
                 await plotDataLayer(layerGroup, event.target.id, currentDateIndex, currentTimeIndex);
                 map.addLayer(layerGroup); // Add the layer group to the map
             } else {
-                // Layer is unchecked, no layers are displayed
-                // Layers have already been removed by removeAllLayers()
+                // Checkbox was unchecked
+                // Ensure all checkboxes are unchecked
+                isProgrammaticChange = true;
+                layerButtons.forEach(btn => {
+                    btn.checked = false;
+                });
+                isProgrammaticChange = false;
+
+                // No layers are displayed; layers have already been removed by removeAllLayers()
             }
         });
     });
 };
+
 
 // Helper function to get the corresponding layer group by checkbox ID
 const getLayerGroupById = (id) => {
