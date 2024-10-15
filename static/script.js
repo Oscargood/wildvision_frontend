@@ -43,7 +43,7 @@ window.onclick = function(event) {
 };
 
 // Initialize the map and set its view to New Zealand with a zoom level
-var map = L.map("map").setView([-43.446754, 171.592242], 7);
+const map = L.map("map").setView([-43.446754, 171.592242], 7);
 
 // Add a tile layer from OpenStreetMap
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -51,17 +51,18 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 // Create layer groups for each type of data
-var animalLayerGroup = L.layerGroup().addTo(map);
-var tempLayerGroup = L.layerGroup().addTo(map);
-var rainLayerGroup = L.layerGroup().addTo(map);
-var windLayerGroup = L.layerGroup().addTo(map);
-var cloudLayerGroup = L.layerGroup().addTo(map);
-var redDeerLayerGroup = L.layerGroup().addTo(map);
-var vegetationLayerGroup = L.layerGroup().addTo(map);
+const animalLayerGroup = L.layerGroup().addTo(map);
+const tempLayerGroup = L.layerGroup().addTo(map);
+const rainLayerGroup = L.layerGroup().addTo(map);
+const windLayerGroup = L.layerGroup().addTo(map);
+const cloudLayerGroup = L.layerGroup().addTo(map);
+const redDeerLayerGroup = L.layerGroup().addTo(map);
+const vegetationLayerGroup = L.layerGroup().addTo(map);
 
 // Variables to store date and time period indices
 let currentDateIndex = 0;
 let currentTimeIndex = 0;
+let dateTimeSliderInterval = null;
 
 // Define the time periods as strings with leading zeros
 const timePeriods = ['01', '04', '07', '10', '13', '16', '19', '22'];
@@ -89,7 +90,7 @@ const uniqueDates = getDatesArray(4); // 4 days' worth of files
 function updateDisplayedDate() {
     const dateDisplay = document.getElementById("day-time-text");
     const selectedDate = uniqueDates[currentDateIndex];
-    dateDisplay.textContent = `${selectedDate.readable} - ${selectedDate.date}`;
+    dateDisplay.textContent = `${selectedDate.readable} - Time: ${timePeriods[currentTimeIndex]}:00`;
 }
 
 const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
@@ -117,36 +118,11 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     } else {
         console.error(`Unknown layer type: ${layerType}`);
         return;
-    }const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
-    layerGroup.clearLayers(); // Clear existing layers
-
-    const selectedDate = uniqueDates[dateIndex].yymmdd;
-    const selectedTimePeriod = timePeriods[timeIndex];
-
-    // Construct the filename based on layer type
-    let filename;
-    if (layerType === 'animal_behaviour') {
-        filename = `static/animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
-    } else if (layerType === 'temperature') {
-        filename = `static/weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
-    } else if (layerType === 'rain') {
-        filename = `static/weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
-    } else if (layerType === 'wind_speed') {
-        filename = `static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
-    } else if (layerType === 'cloud_cover') {
-        filename = `static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
-    } else if (layerType === 'red_deer_location') {
-        filename = `static/animal/red_deer_location.geojson`;
-    } else if (layerType === 'vegetation') {
-        filename = `static/vegetation/vegetation_native.geojson`;
-    } else {
-        console.error(`Unknown layer type: ${layerType}`);
-        return;
     }
 
     // Fetch the GeoJSON data
     try {
-        const res = await fetch(`/data/${filename}`);
+        const res = await fetch(`/${filename}`);
         if (!res.ok) {
             console.warn(`File not found: ${filename}`);
             return;
@@ -218,6 +194,7 @@ const initializeMap = () => {
     setupLayerToggles();
 };
 
+// Function to set up layer toggles
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
     layerButtons.forEach(button => {
@@ -243,13 +220,13 @@ const getLayerGroupById = (id) => {
             return tempLayerGroup;
         case 'rain':
             return rainLayerGroup;
-        case 'wind_speed': // Ensure case sensitivity matches the HTML
+        case 'wind_speed':
             return windLayerGroup;
         case 'cloud_cover':
             return cloudLayerGroup;
         case 'red_deer_location':
             return redDeerLayerGroup;
-        case 'vegetation': // Ensure case sensitivity matches the HTML
+        case 'vegetation':
             return vegetationLayerGroup;
         default:
             console.error(`Unknown layer group for ID: ${id}`);
@@ -261,14 +238,14 @@ const getLayerGroupById = (id) => {
 const updateLayersForSelectedDateAndTime = (dateIndex, timeIndex) => {
     const layerSelections = document.querySelectorAll('input[name="layer-toggle"]:checked');
     layerSelections.forEach(selection => {
-        plotDataLayer(getLayerGroupById(selection.id), selection.id.replace('toggle', '').toLowerCase(), dateIndex, timeIndex);
+        plotDataLayer(getLayerGroupById(selection.id), selection.id, dateIndex, timeIndex);
     });
 };
 
+// Function to initialize Play/Pause button for the combined slider
 const initializePlayPauseButtons = () => {
     const dateTimePlayPauseBtn = document.getElementById('DateTimePlayPause');
     const dateTimeSlider = document.getElementById('DateTimeSlider');
-    const dateTimeLabel = document.getElementById('DateTimeSliderLabel');
     const totalPeriods = uniqueDates.length * timePeriods.length;
 
     if (dateTimePlayPauseBtn) {
@@ -294,27 +271,6 @@ const initializePlayPauseButtons = () => {
     }
 };
 
-// Initialize toggles for layers
-const toggleLayer = (radioName, layerGroup) => {
-    const radioButtons = document.getElementsByName(radioName);
-    radioButtons.forEach(radio => {
-        radio.addEventListener('change', (event) => {
-            if (event.target.checked) {
-                // Clear existing layers
-                map.removeLayer(animalLayerGroup);
-                map.removeLayer(tempLayerGroup);
-                map.removeLayer(rainLayerGroup);
-                map.removeLayer(windLayerGroup);
-                map.removeLayer(cloudLayerGroup);
-                map.removeLayer(redDeerLayerGroup);
-                map.removeLayer(vegetationLayerGroup);
-                // Add selected layer to the map
-                map.addLayer(layerGroup);
-            }
-        });
-    });
-};
-
-// // Call initializeMap when the script loads
-// initializeMap();
+// Call initializeMap when the script loads
+// Note: Since initializeMap() is already called on window load, you can remove the duplicate call if present.
 
