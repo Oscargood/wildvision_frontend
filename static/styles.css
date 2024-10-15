@@ -64,7 +64,7 @@ button.selected {
 .layer-toggle-box {
     position: absolute; /* Absolute positioning */
     top: 10px; /* Adjust as needed */
-    left: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
     background-color: rgba(255, 255, 255, 0.7); /* Slightly increased opacity for better visibility */
     border-radius: 5px; /* Rounded corners */
     padding: 10px; /* Inner padding */
