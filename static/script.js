@@ -92,15 +92,11 @@ function updateDisplayedDate() {
     dateDisplay.textContent = `${selectedDate.readable} - ${selectedDate.date}`;
 }
 
-// Function to plot data layers based on selected date and time period
 const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     layerGroup.clearLayers(); // Clear existing layers
 
-    const selectedDate = uniqueDates[dateIndex].yymmdd;
+    const selectedDate = uniqueDates[dateIndex].yymmdd; // Use the yymmdd format
     const selectedTimePeriod = timePeriods[timeIndex];
-
-    // Logging for debugging
-    console.log(`Plotting ${layerType} data for date: ${selectedDate} and time period: ${selectedTimePeriod}`);
 
     // Construct the filename based on layer type
     let filename;
@@ -123,29 +119,27 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
         return;
     }
 
-    // Log the constructed filename
-    console.log(`Fetching data from: ${filename}`);
-
+    // Fetch the GeoJSON data
     try {
-        const res = await fetch(`/data/${filename}`);  // Updated fetch call
+        const res = await fetch(`/data/${filename}`);
         if (!res.ok) {
             console.warn(`File not found: ${filename}`);
             return;
         }
         const data = await res.json();
 
-        // Create a GeoJSON layer
+        // Create and add GeoJSON layer to the specified layer group
         const geoJsonLayer = L.geoJSON(data, {
-            style: function(feature) {
+            style: function (feature) {
                 return {
                     color: feature.properties.color || '#ff0000',
                     fillColor: feature.properties.color || '#ff0000',
                     weight: 1,
-                    opacity: 0.5,
+                    opacity: 1,
                     fillOpacity: 0.5,
                 };
             },
-            onEachFeature: function(feature, layer) {
+            onEachFeature: function (feature, layer) {
                 const props = feature.properties;
                 const popupContent = `
                     <strong>${layerType.replace('_', ' ')} Data</strong><br>
@@ -157,13 +151,13 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
             },
         });
 
-        // Add the GeoJSON layer to the respective layer group
+        // Add the layer to the map
         layerGroup.addLayer(geoJsonLayer);
-
     } catch (err) {
         console.error(`Error fetching ${layerType} data for ${filename}:`, err);
     }
 };
+
 
 // Function to initialize the map and set up event listeners
 const initializeMap = () => {
