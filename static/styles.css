@@ -57,6 +57,7 @@ button.selected {
     height: 600px;
     background-color: var(--background-color, #252424); /* Adjustable map background */
     position: relative; /* Position relative for the toggle box and slider */
+    z-index: 1; /* Ensure map is below the overlays */
 }
 
 /* Layer toggle box styles */
@@ -68,6 +69,7 @@ button.selected {
     border-radius: 5px; /* Rounded corners */
     padding: 10px; /* Inner padding */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+    z-index: 10; /* Higher z-index for visibility */
 }
 
 .menu-label {
@@ -97,6 +99,7 @@ button.selected {
     padding: 10px; /* Inner padding */
     border-radius: 5px; /* Rounded corners */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+    z-index: 10; /* Higher z-index for visibility */
 }
 
 /* Styling for the range slider */
