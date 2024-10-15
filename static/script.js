@@ -160,53 +160,69 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     }
 };
 
+// Helper function to remove all layers from the map
+const removeAllLayers = () => {
+    const allLayerGroups = [
+        animalLayerGroup,
+        tempLayerGroup,
+        rainLayerGroup,
+        windLayerGroup,
+        cloudLayerGroup,
+        redDeerLayerGroup,
+        vegetationLayerGroup
+    ];
+    allLayerGroups.forEach(layerGroup => {
+        map.removeLayer(layerGroup);
+    });
+};
+
 // Function to initialize the map and set up event listeners
 const initializeMap = () => {
     const dateTimeSlider = document.getElementById('DateTimeSlider');
-    const dateTimeLabel = document.getElementById('DateTimeSliderLabel');
     const totalPeriods = uniqueDates.length * timePeriods.length;
 
     if (totalPeriods > 0) {
         dateTimeSlider.max = totalPeriods - 1; // Set the slider's max value
         updateDisplayedDate(); // Set the initial displayed date
 
-        // Plot all layers for the first date and time period based on default selection
+        // Plot layers based on the default selection
         updateLayersForSelectedDateAndTime(0, 0);
     } else {
-        dateTimeLabel.textContent = 'No Data Available';
+        dateDisplay.textContent = 'No Data Available';
     }
-
-    // Add event listener to the combined slider
-    dateTimeSlider.addEventListener('input', () => {
-        const combinedIndex = parseInt(dateTimeSlider.value);
-        currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
-        currentTimeIndex = combinedIndex % timePeriods.length;
-
-        updateDisplayedDate(); // Update displayed date
-        // Update layers for the new date and time period
-        updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
-    });
 
     // Initialize Play/Pause button for the combined slider
     initializePlayPauseButtons();
-    console.log("Map initialized with data layers.");
 
-    // Set up toggle layers
+    // Set up layer toggles
     setupLayerToggles();
 };
 
+// Updated setupLayerToggles function
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
+
     layerButtons.forEach(button => {
         button.addEventListener('change', async (event) => {
+            // Remove all layers from the map
+            removeAllLayers();
+
+            // Uncheck all other checkboxes except the one just changed
+            layerButtons.forEach(btn => {
+                if (btn !== button) {
+                    btn.checked = false;
+                }
+            });
+
             const layerGroup = getLayerGroupById(event.target.id);
+
             if (event.target.checked) {
                 // Layer is checked, plot the data for the current date and time period
                 await plotDataLayer(layerGroup, event.target.id, currentDateIndex, currentTimeIndex);
                 map.addLayer(layerGroup); // Add the layer group to the map
             } else {
-                // Layer is unchecked, remove the layer from the map
-                map.removeLayer(layerGroup);
+                // Layer is unchecked, no layers are displayed
+                // Layers have already been removed by removeAllLayers()
             }
         });
     });
@@ -235,9 +251,15 @@ const getLayerGroupById = (id) => {
     }
 };
 
+// Function to update layers for the selected date and time
 const updateLayersForSelectedDateAndTime = async (dateIndex, timeIndex) => {
     const layerSelections = document.querySelectorAll('input[name="layer-toggle"]:checked');
-    for (const selection of layerSelections) {
+
+    // Since only one layer can be checked at a time, we can safely remove all layers
+    removeAllLayers();
+
+    if (layerSelections.length > 0) {
+        const selection = layerSelections[0];
         const layerGroup = getLayerGroupById(selection.id);
         await plotDataLayer(layerGroup, selection.id, dateIndex, timeIndex);
         map.addLayer(layerGroup); // Ensure the layer group is added to the map
