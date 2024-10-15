@@ -48,7 +48,7 @@ button.selected {
     display: flex;
     align-items: center;
     font-size: 16px;
-    width: 800px;
+    width: 70%;
     border: 2px solid #ccc;
     border-radius: 5px;
     background-color: #333;
@@ -60,13 +60,13 @@ button.selected {
 .dropdown {
     position: absolute;
     top: 10px; /* Adjust as needed */
-    left: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
     z-index: 1000; /* Ensure it appears above other elements */
 }
 
 /* Dropdown button */
 .dropbtn {
-    background-color: #4CAF50; /* Green background */
+    background-color: rgb(210, 154, 66); /* Green background */
     color: white; /* White text */
     padding: 10px;
     font-size: 16px;
@@ -76,7 +76,7 @@ button.selected {
 
 /* Dropdown content (hidden by default) */
 .dropdown-content {
-    display: none; /* Hidden by default */
+    display: block; /* Hidden by default */
     position: absolute;
     background-color: #f9f9f9; /* Light grey background */
     min-width: 200px; /* Adjust as needed */
