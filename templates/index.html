@@ -11,44 +11,44 @@
 <body>
     <!-- Main container with adjustable background -->
     <div id="container">
-        <!-- Buttons and layer toggles above the map -->
+        <!-- Buttons above the map -->
         <div id="top-buttons">
             <button id="infoButton">Info</button>
             <div id="static_text_box">General animal behaviour notes</div>
-
-        <div id="layerToggleContainer" class="layer-toggle-box">
-                <label class="layer-label">
-                    <input type="radio" name="layer-toggle" id="animal_behaviour" class="layer-button" checked>
-                    Animal Behaviour
-                </label>
-                <label class="layer-label">
-                    <input type="radio" name="layer-toggle" id="temperature" class="layer-button">
-                    Temperature
-                </label>
-                <label class="layer-label">
-                    <input type="radio" name="layer-toggle" id="rain" class="layer-button">
-                    Rain
-                </label>
-                <label class="layer-label">
-                    <input type="radio" name="layer-toggle" id="Wind_speed" class="layer-button">
-                    Wind Speed
-                </label>
-                <label class="layer-label">
-                    <input type="radio" name="layer-toggle" id="cloud_cover" class="layer-button">
-                    Cloud Cover
-                </label>
-                <label class="layer-label">
-                    <input type="radio" name="layer-toggle" id="red_deer_location" class="layer-button">
-                    Red Deer Distribution
-                </label>
-                <label class="layer-label">
-                    <input type="radio" name="layer-toggle" id="Vegetation" class="layer-button">
-                    Vegetation
-                </label>
-            </div>
-
         </div>
-        <div id="map">
+
+        <div id="map"></div>
+
+        <!-- Layer toggle container to the left of the map -->
+        <div id="layer-toggles">
+            <label class="layer-label">
+                <input type="checkbox" name="layer-toggle" id="animal_behaviour" class="layer-button" checked>
+                Animal Behaviour
+            </label>
+            <label class="layer-label">
+                <input type="checkbox" name="layer-toggle" id="temperature" class="layer-button">
+                Temperature
+            </label>
+            <label class="layer-label">
+                <input type="checkbox" name="layer-toggle" id="rain" class="layer-button">
+                Rain
+            </label>
+            <label class="layer-label">
+                <input type="checkbox" name="layer-toggle" id="Wind_speed" class="layer-button">
+                Wind Speed
+            </label>
+            <label class="layer-label">
+                <input type="checkbox" name="layer-toggle" id="cloud_cover" class="layer-button">
+                Cloud Cover
+            </label>
+            <label class="layer-label">
+                <input type="checkbox" name="layer-toggle" id="red_deer_location" class="layer-button">
+                Red Deer Distribution
+            </label>
+            <label class="layer-label">
+                <input type="checkbox" name="layer-toggle" id="Vegetation" class="layer-button">
+                Vegetation
+            </label>
         </div>
         
         <div id="day-time-selection">
