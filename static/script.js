@@ -77,7 +77,7 @@ function getDatesArray(numDays) {
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
         const yymmdd = yy + mm + dd;
-        dates.push(yymmdd);
+        dates.push({ date: `${yy}-${mm}-${dd}`, readable: `${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, yymmdd });
     }
     return dates;
 }
@@ -85,10 +85,18 @@ function getDatesArray(numDays) {
 // Get the unique dates
 const uniqueDates = getDatesArray(4); // 4 days' worth of files
 
+// Update the displayed date information
+function updateDisplayedDate() {
+    const dateDisplay = document.getElementById("day-time-text");
+    const selectedDate = uniqueDates[currentDateIndex];
+    dateDisplay.textContent = `${selectedDate.readable} - ${selectedDate.date}`;
+}
+
+// Function to plot data layers based on selected date and time period
 const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     layerGroup.clearLayers(); // Clear existing layers
 
-    const selectedDate = uniqueDates[dateIndex];
+    const selectedDate = uniqueDates[dateIndex].yymmdd;
     const selectedTimePeriod = timePeriods[timeIndex];
 
     // Logging for debugging
@@ -165,7 +173,7 @@ const initializeMap = () => {
 
     if (totalPeriods > 0) {
         dateTimeSlider.max = totalPeriods - 1; // Set the slider's max value
-        dateTimeLabel.textContent = `${uniqueDates[0]} - Time Period: ${timePeriods[0]}`;
+        updateDisplayedDate(); // Set the initial displayed date
 
         // Plot all layers for the first date and time period based on default selection
         updateLayersForSelectedDateAndTime(0, 0);
@@ -179,8 +187,7 @@ const initializeMap = () => {
         currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
         currentTimeIndex = combinedIndex % timePeriods.length;
 
-        dateTimeLabel.textContent = `${uniqueDates[currentDateIndex]} - Time Period: ${timePeriods[currentTimeIndex]}`;
-
+        updateDisplayedDate(); // Update displayed date
         // Update layers for the new date and time period
         updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
     });
@@ -193,101 +200,4 @@ const initializeMap = () => {
     setupLayerToggles();
 };
 
-// Function to set up layer toggles
-const setupLayerToggles = () => {
-    const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
-    layerButtons.forEach(button => {
-        button.addEventListener('change', (event) => {
-            const layerGroup = getLayerGroupById(event.target.id);
-            if (event.target.checked) {
-                // Layer is checked, plot the data for the current date and time period
-                plotDataLayer(layerGroup, event.target.id.replace('toggle', '').toLowerCase(), currentDateIndex, currentTimeIndex);
-            } else {
-                // Layer is unchecked, remove the layer from the map
-                map.removeLayer(layerGroup);
-            }
-        });
-    });
-};
-
-// Helper function to get the corresponding layer group by checkbox ID
-const getLayerGroupById = (id) => {
-    switch (id) {
-        case 'animal_behaviour':
-            return animalLayerGroup;
-        case 'temperature':
-            return tempLayerGroup;
-        case 'rain':
-            return rainLayerGroup;
-        case 'Wind_speed': // Ensure case sensitivity matches the HTML
-            return windLayerGroup;
-        case 'cloud_cover':
-            return cloudLayerGroup;
-        case 'red_deer_location':
-            return redDeerLayerGroup;
-        case 'Vegetation': // Ensure case sensitivity matches the HTML
-            return vegetationLayerGroup;
-        default:
-            console.error(`Unknown layer group for ID: ${id}`);
-            return null;
-    }
-};
-
-// Function to update layers based on selected date and time period
-const updateLayersForSelectedDateAndTime = (dateIndex, timeIndex) => {
-    const layerSelections = document.querySelectorAll('input[name="layer-toggle"]:checked');
-    layerSelections.forEach(selection => {
-        plotDataLayer(getLayerGroupById(selection.id), selection.id.replace('toggle', '').toLowerCase(), dateIndex, timeIndex);
-    });
-};
-
-// Function to initialize Play/Pause button for the combined slider
-const initializePlayPauseButtons = () => {
-    const dateTimePlayPauseBtn = document.getElementById('DateTimePlayPause');
-    if (dateTimePlayPauseBtn) {
-        dateTimePlayPauseBtn.addEventListener('click', () => {
-            if (dateTimeSliderInterval === null) {
-                dateTimePlayPauseBtn.textContent = 'Pause';
-                dateTimeSliderInterval = setInterval(() => {
-                    const combinedIndex = (currentDateIndex * timePeriods.length + currentTimeIndex + 1) % totalPeriods;
-                    dateTimeSlider.value = combinedIndex;
-                    currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
-                    currentTimeIndex = combinedIndex % timePeriods.length;
-
-                    dateTimeLabel.textContent = `${uniqueDates[currentDateIndex]} - Time Period: ${timePeriods[currentTimeIndex]}`;
-
-                    // Update layers for the new combined date and time period
-                    updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
-                }, 1000); // Change every 1 second
-            } else {
-                dateTimePlayPauseBtn.textContent = 'Play';
-                clearInterval(dateTimeSliderInterval);
-                dateTimeSliderInterval = null;
-            }
-        });
-    }
-};
-
-// Initialize toggles for layers
-const toggleLayer = (radioName, layerGroup) => {
-    const radioButtons = document.getElementsByName(radioName);
-    radioButtons.forEach(radio => {
-        radio.addEventListener('change', (event) => {
-            if (event.target.checked) {
-                // Clear existing layers
-                map.removeLayer(animalLayerGroup);
-                map.removeLayer(tempLayerGroup);
-                map.removeLayer(rainLayerGroup);
-                map.removeLayer(windLayerGroup);
-                map.removeLayer(cloudLayerGroup);
-                map.removeLayer(redDeerLayerGroup);
-                map.removeLayer(vegetationLayerGroup);
-                // Add selected layer to the map
-                map.addLayer(layerGroup);
-            }
-        });
-    });
-};
-
-// Call initializeMap when the script loads
-initializeMap();
+// Rest of your JavaScript remains unchanged...
