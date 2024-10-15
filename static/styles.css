@@ -91,9 +91,6 @@ button.selected {
 
 /* Date-time slider styles */
 #date-time-slider-container {
-    position: absolute; /* Position within the map */
-    bottom: 10px; /* Position at the bottom */
-    left: 0; /* Align to the left */
     width: 100%; /* Ensure it takes the full width of the map */
     background: rgba(255, 255, 255, 0.5); /* 50% opacity background */
     padding: 10px; /* Inner padding */
