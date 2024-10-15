@@ -61,7 +61,7 @@ button.selected {
 /* Layer toggle container positioned on top of the map */
 #layer-toggles {
     position: absolute;
-    top: 20px;
+    top: 100px;
     left: 20px;
     background-color: rgba(51, 51, 51, 0.8); /* Semi-transparent dark background */
     padding: 15px;
