@@ -194,7 +194,6 @@ const initializeMap = () => {
     setupLayerToggles();
 };
 
-// Function to set up layer toggles
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
     layerButtons.forEach(button => {
@@ -202,7 +201,7 @@ const setupLayerToggles = () => {
             const layerGroup = getLayerGroupById(event.target.id);
             if (event.target.checked) {
                 // Layer is checked, plot the data for the current date and time period
-                plotDataLayer(layerGroup, event.target.id.replace('toggle', '').toLowerCase(), currentDateIndex, currentTimeIndex);
+                plotDataLayer(layerGroup, event.target.id, currentDateIndex, currentTimeIndex);
             } else {
                 // Layer is unchecked, remove the layer from the map
                 map.removeLayer(layerGroup);
