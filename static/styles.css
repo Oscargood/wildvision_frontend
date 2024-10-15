@@ -68,7 +68,7 @@ button.selected {
     border-radius: 5px; /* Rounded corners */
     padding: 10px; /* Inner padding */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
-    z-index: 2; /* Higher z-index for visibility */
+    z-index: 100; /* Higher z-index for visibility */
 }
 
 /* Menu content styles */
