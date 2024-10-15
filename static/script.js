@@ -117,6 +117,31 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     } else {
         console.error(`Unknown layer type: ${layerType}`);
         return;
+    }const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
+    layerGroup.clearLayers(); // Clear existing layers
+
+    const selectedDate = uniqueDates[dateIndex].yymmdd;
+    const selectedTimePeriod = timePeriods[timeIndex];
+
+    // Construct the filename based on layer type
+    let filename;
+    if (layerType === 'animal_behaviour') {
+        filename = `static/animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
+    } else if (layerType === 'temperature') {
+        filename = `static/weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
+    } else if (layerType === 'rain') {
+        filename = `static/weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
+    } else if (layerType === 'wind_speed') {
+        filename = `static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
+    } else if (layerType === 'cloud_cover') {
+        filename = `static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
+    } else if (layerType === 'red_deer_location') {
+        filename = `static/animal/red_deer_location.geojson`;
+    } else if (layerType === 'vegetation') {
+        filename = `static/vegetation/vegetation_native.geojson`;
+    } else {
+        console.error(`Unknown layer type: ${layerType}`);
+        return;
     }
 
     // Fetch the GeoJSON data
@@ -157,7 +182,6 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
         console.error(`Error fetching ${layerType} data for ${filename}:`, err);
     }
 };
-
 
 // Function to initialize the map and set up event listeners
 const initializeMap = () => {
@@ -219,13 +243,13 @@ const getLayerGroupById = (id) => {
             return tempLayerGroup;
         case 'rain':
             return rainLayerGroup;
-        case 'Wind_speed': // Ensure case sensitivity matches the HTML
+        case 'wind_speed': // Ensure case sensitivity matches the HTML
             return windLayerGroup;
         case 'cloud_cover':
             return cloudLayerGroup;
         case 'red_deer_location':
             return redDeerLayerGroup;
-        case 'Vegetation': // Ensure case sensitivity matches the HTML
+        case 'vegetation': // Ensure case sensitivity matches the HTML
             return vegetationLayerGroup;
         default:
             console.error(`Unknown layer group for ID: ${id}`);
