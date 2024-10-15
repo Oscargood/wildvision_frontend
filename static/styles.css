@@ -1,5 +1,8 @@
-body {
-    font-family: Arial, sans-serif;
+/* Ensure html and body take full height */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 /* Wrapper/container for map and buttons with adjustable background */
@@ -8,6 +11,7 @@ body {
     display: flex;
     flex-direction: column; /* Stack the content vertically */
     position: relative; /* Position relative for the toggle box and slider */
+    height: 100%;
 }
 
 #top-buttons {
@@ -98,9 +102,9 @@ button.selected {
 #map {
     position: relative; /* Added position relative */
     width: 100%;
-    height: 100%;
     background-color: var(--background-color, #252424); /* Adjustable map background */
     z-index:0;
+    flex-grow: 1;
 }
 
 /* Layer toggle box styles */
