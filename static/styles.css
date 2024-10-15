@@ -56,14 +56,50 @@ button.selected {
     width: 100%;
     height: 600px;
     background-color: var(--background-color, #252424); /* Adjustable map background */
+    position: relative; /* Position relative for the toggle box and slider */
+}
+
+/* Layer toggle box styles */
+.layer-toggle-box {
+    position: absolute; /* Absolute positioning */
+    top: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+    background-color: rgba(255, 255, 255, 0.5); /* 50% opacity */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px; /* Inner padding */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+}
+
+.menu-label {
+    cursor: pointer;
+    padding: 5px;
+    background-color: #444;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.menu-content {
+    display: none; /* Initially hidden */
+    padding-left: 15px; /* Indent for radio buttons */
+}
+
+.menu-content input {
+    margin-right: 5px; /* Space between radio button and label */
+}
+
+/* Date-time slider styles */
+#date-time-slider-container {
+    position: absolute; /* Position within the map */
+    bottom: 10px; /* Position at the bottom */
+    left: 0; /* Align to the left */
+    width: 100%; /* Ensure it takes the full width of the map */
+    background: rgba(255, 255, 255, 0.5); /* 50% opacity background */
+    padding: 10px; /* Inner padding */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
 }
 
 /* Styling for the range slider */
-#date-time-slider-container {
-    width: 90%; /* Ensure the container is 90% of the width */
-    margin: 0 auto; /* Center the container */
-}
-
 .slider {
     width: 100%; /* Full width of the parent container */
     -webkit-appearance: none;
@@ -141,30 +177,4 @@ button.selected {
     color: black;
     text-decoration: none;
     cursor: pointer;
-}
-
-/* Additional styles for the menu */
-.menu {
-    margin: 10px 0;
-    background-color: #333;
-    color: #fff;
-    border-radius: 5px;
-    padding: 10px;
-}
-
-.menu-label {
-    cursor: pointer;
-    padding: 5px;
-    background-color: #444;
-    border-radius: 5px;
-    margin-bottom: 5px;
-}
-
-.menu-content {
-    display: none;
-    padding-left: 15px;
-}
-
-.menu-content input {
-    margin-right: 5px;
 }
