@@ -77,7 +77,7 @@ function getDatesArray(numDays) {
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
         const yymmdd = yy + mm + dd;
-        dates.push(yymmdd);
+        dates.push({ date: `${yy}-${mm}-${dd}`, readable: `${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, yymmdd });
     }
     return dates;
 }
@@ -85,10 +85,18 @@ function getDatesArray(numDays) {
 // Get the unique dates
 const uniqueDates = getDatesArray(4); // 4 days' worth of files
 
+// Update the displayed date information
+function updateDisplayedDate() {
+    const dateDisplay = document.getElementById("day-time-text");
+    const selectedDate = uniqueDates[currentDateIndex];
+    dateDisplay.textContent = `${selectedDate.readable} - ${selectedDate.date}`;
+}
+
+// Function to plot data layers based on selected date and time period
 const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     layerGroup.clearLayers(); // Clear existing layers
 
-    const selectedDate = uniqueDates[dateIndex];
+    const selectedDate = uniqueDates[dateIndex].yymmdd;
     const selectedTimePeriod = timePeriods[timeIndex];
 
     // Logging for debugging
@@ -165,7 +173,7 @@ const initializeMap = () => {
 
     if (totalPeriods > 0) {
         dateTimeSlider.max = totalPeriods - 1; // Set the slider's max value
-        dateTimeLabel.textContent = `${uniqueDates[0]} - Time Period: ${timePeriods[0]}`;
+        updateDisplayedDate(); // Set the initial displayed date
 
         // Plot all layers for the first date and time period based on default selection
         updateLayersForSelectedDateAndTime(0, 0);
@@ -179,8 +187,7 @@ const initializeMap = () => {
         currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
         currentTimeIndex = combinedIndex % timePeriods.length;
 
-        dateTimeLabel.textContent = `${uniqueDates[currentDateIndex]} - Time Period: ${timePeriods[currentTimeIndex]}`;
-
+        updateDisplayedDate(); // Update displayed date
         // Update layers for the new date and time period
         updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
     });
