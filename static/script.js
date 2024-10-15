@@ -51,13 +51,14 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 // Create layer groups for each type of data
-const animalLayerGroup = L.layerGroup().addTo(map);
-const tempLayerGroup = L.layerGroup().addTo(map);
-const rainLayerGroup = L.layerGroup().addTo(map);
-const windLayerGroup = L.layerGroup().addTo(map);
-const cloudLayerGroup = L.layerGroup().addTo(map);
-const redDeerLayerGroup = L.layerGroup().addTo(map);
-const vegetationLayerGroup = L.layerGroup().addTo(map);
+const animalLayerGroup = L.layerGroup();
+const tempLayerGroup = L.layerGroup();
+const rainLayerGroup = L.layerGroup();
+const windLayerGroup = L.layerGroup();
+const cloudLayerGroup = L.layerGroup();
+const redDeerLayerGroup = L.layerGroup();
+const vegetationLayerGroup = L.layerGroup();
+
 
 // Variables to store date and time period indices
 let currentDateIndex = 0;
@@ -194,15 +195,15 @@ const initializeMap = () => {
     setupLayerToggles();
 };
 
-// Function to set up layer toggles
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
     layerButtons.forEach(button => {
-        button.addEventListener('change', (event) => {
+        button.addEventListener('change', async (event) => {
             const layerGroup = getLayerGroupById(event.target.id);
             if (event.target.checked) {
                 // Layer is checked, plot the data for the current date and time period
-                plotDataLayer(layerGroup, event.target.id, currentDateIndex, currentTimeIndex);
+                await plotDataLayer(layerGroup, event.target.id, currentDateIndex, currentTimeIndex);
+                map.addLayer(layerGroup); // Add the layer group to the map
             } else {
                 // Layer is unchecked, remove the layer from the map
                 map.removeLayer(layerGroup);
@@ -234,12 +235,13 @@ const getLayerGroupById = (id) => {
     }
 };
 
-// Function to update layers based on selected date and time period
-const updateLayersForSelectedDateAndTime = (dateIndex, timeIndex) => {
+const updateLayersForSelectedDateAndTime = async (dateIndex, timeIndex) => {
     const layerSelections = document.querySelectorAll('input[name="layer-toggle"]:checked');
-    layerSelections.forEach(selection => {
-        plotDataLayer(getLayerGroupById(selection.id), selection.id, dateIndex, timeIndex);
-    });
+    for (const selection of layerSelections) {
+        const layerGroup = getLayerGroupById(selection.id);
+        await plotDataLayer(layerGroup, selection.id, dateIndex, timeIndex);
+        map.addLayer(layerGroup); // Ensure the layer group is added to the map
+    }
 };
 
 // Function to initialize Play/Pause button for the combined slider
