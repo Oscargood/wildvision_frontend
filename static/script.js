@@ -315,6 +315,6 @@ const toggleLayer = (radioName, layerGroup) => {
     });
 };
 
-// Call initializeMap when the script loads
-initializeMap();
+// // Call initializeMap when the script loads
+// initializeMap();
 
