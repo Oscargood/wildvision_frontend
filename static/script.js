@@ -24,7 +24,7 @@ setInterval(() => {
 // const closeModal = document.querySelector('.close'); // Reference to the close (X) button
 
 window.addEventListener('load', function() {
-    modal.style.display = 'block'; // Show the modal
+    // modal.style.display = 'block'; // Show the modal
     initializeMap(); // Initialize the map and display behavior decisions
 });
 
