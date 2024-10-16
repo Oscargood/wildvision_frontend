@@ -1,8 +1,6 @@
 /* Ensure html and body take full height */
 html, body {
-    height: 97%;
-    margin: 0;
-    padding: 0;
+    height: 100%;
     background-color: var(--container-bg-color, #2b2929);
     font-family: 'Avenir', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -14,6 +12,79 @@ html, body {
     flex-direction: column; /* Stack the content vertically */
     position: relative; /* Position relative for the toggle box and slider */
     height: 100%;
+}
+
+/* Static Text Container Adjustments */
+#staticTextContainer {
+    position: absolute;
+    top: 10px;                        /* Distance from the top */
+    left: 50%;
+    transform: translateX(-50%);      /* Center horizontally */
+    z-index: 1000;                    /* Above the map */
+    width: 70%;                       /* Adjust width as needed */
+    max-width: calc(100% - 260px);    /* Prevent overlap with side menu */
+    /* 260px = sideMenu width (250px) + right spacing (10px) */
+    transition: max-width 0.3s ease, left 0.3s ease; /* Smooth transition */
+}
+
+/* Adjust #staticTextContainer when Side Menu is open */
+#container.menu-open #staticTextContainer {
+    max-width: calc(100% - 260px);    /* Adjust if side menu width changes */
+    left: calc(50% - 125px);          /* Shift left by half side menu width */
+}
+
+
+/* Static text box styling */
+#static_text_box {
+    padding: 10px;
+    background-color: rgba(51, 51, 51, 0.8);
+    color: #ffffff;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 16px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+
+/* Adjust #container to accommodate side menu */
+#container {
+    display: flex;
+    flex-direction: row; /* Stack content horizontally */
+    height: 100%;
+    position: right;
+}
+
+/* Menu toggle button styling */
+#menuToggle {
+    /* Adjust the text color */
+    color: #ffffff; /* Change to your desired text color */
+
+    /* Adjust the font size */
+    font-size: 30px; /* Change to your desired font size */
+
+    /* Additional styling */
+    background-color: #2b2929; /* Button background color */
+    padding: 5px 10px;     /* Adjust padding as needed */
+    border: none;           /* Remove default border */
+    border-radius: 5px;     /* Rounded corners */
+    cursor: pointer;        /* Pointer cursor on hover */
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    transition: right 0.3s ease;        /* Smooth transition when moving */
+    min-width: 44px; /* Minimum touch target size */
+    min-height: 44px;
+}
+
+/* Hover effect for the button */
+#menuToggle:hover {
+    background-color: #555; /* Background color on hover */
+}
+
+/* Adjust #menuToggle position when Side Menu is open */
+#container.menu-open #menuToggle {
+    right: 260px; /* sideMenu width (250px) + right spacing (10px) */
 }
 
 #top-buttons {
@@ -32,20 +103,6 @@ button:hover {
 button.selected {
     background-color: #5d5223; /* Darker background for selected state */
     color: rgb(0, 0, 0);
-}
-
-#static_text_box {
-    padding: 0px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    font-size: 16px;
-    width: 30%;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    background-color: #333;
-    color: #ffffff;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Dropdown container */
@@ -96,10 +153,40 @@ button.selected {
 /* Container for the map */
 #map {
     position: relative; /* Added position relative */
-    width: 100%;
     background-color: var(--background-color, #252424); /* Adjustable map background */
     z-index:0;
     flex-grow: 1;
+}
+
+#sideMenu {
+    width: 0;
+    overflow-x: hidden;
+    transition: width 0.3s ease;
+    background-color: #2b2929;
+    color: #ffffff;
+    /* Adjust the z-index if necessary */
+    z-index: 1001;
+}
+
+#sideMenu.open {
+    width: 250px; /* Adjust as needed */
+}
+
+/* Style the menu content */
+#sideMenu h2 {
+    color: #ffffff;
+    padding: 10px;
+    margin: 0;
+    border-bottom: 1px solid #444;
+}
+
+#sideMenu .layer-label {
+    display: block;
+    margin: 10px;
+}
+
+#sideMenu .layer-label input {
+    margin-right: 8px;
 }
 
 /* Layer toggle box styles */
@@ -120,58 +207,84 @@ button.selected {
     color: #ffffff; /* Text color for labels */
 }
 
+/* Date-Time Slider Container Styling */
 #date-time-slider-container {
-    position: fixed; /* Fix the slider to the viewport */
-    bottom: 0; /* Align it to the bottom */
-    left: 0; /* Align it to the left */
-    width: 100%; /* Full width */
-    background: #2b2929; /* Background color */
-    padding: 0px; /* Adjust padding as needed */
-    box-sizing: border-box; /* Include padding in the width */
-    z-index: 1000; /* Ensure it appears above other elements */
+    position: fixed;                    /* Fixes the slider relative to the viewport */
+    bottom: 20px;                       /* Positions it 20px above the bottom */
+    left: 50%;                          /* Centers it horizontally */
+    transform: translateX(-50%);        /* Adjusts centering */
+    width: 90%;                         /* Takes up 90% of the viewport width */
+    background: rgba(43, 41, 41, 0.8); /* Semi-transparent background for better visibility */
+    padding: 10px;                      /* Inner spacing */
+    border-radius: 8px;                 /* Rounded corners */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+    z-index: 1000;                      /* Ensures it overlays the map */
+    display: flex;                      /* Enables flex layout for child elements */
+    align-items: center;                /* Vertically centers the slider */
+    justify-content: center;            /* Horizontally centers the slider */
+    transition: opacity 0.3s ease, bottom 0.3s ease; /* Smooth transitions */
+    opacity: 1;                         /* Fully visible by default */
 }
 
 /* Styling for the range slider */
-.slider {
-    width: 100%; /* Full width of the parent container */
+#date-time-slider-container .slider {
+    width: 100%;                        /* Slider takes up full width of its container */
     -webkit-appearance: none;
     appearance: none;
-    height: 10px;
-    background: #000;
+    height: 8px;
+    background: #000;                   /* Slider track color */
     outline: none;
     opacity: 1;
     transition: opacity .2s;
-    border-radius: 0px;
+    border-radius: 4px;                 /* Rounded slider track */
+    margin: 0;                           /* Removes default margins */
 }
 
-.slider:hover {
-    opacity: 0.9;
-}
-
-/* Custom handle styling */
-.slider::-webkit-slider-thumb {
+/* Slider Thumb Styling */
+#date-time-slider-container .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 15px;
-    height: 15px;
-    background:  rgb(210, 154, 66);
-    cursor: pointer;
-    border-radius: 100%;
-}
-.slider::-moz-range-thumb {
-    width: 15px;
-    height: 15px;
+    width: 20px;
+    height: 20px;
     background: rgb(210, 154, 66);
     cursor: pointer;
-    border-radius: 100%;
+    border-radius: 50%;                 /* Circular thumb */
+    border: none;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
 }
 
-/* Day and time selection display */
+#date-time-slider-container .slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: rgb(210, 154, 66);
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+
+/* Day-Time Selection Styling */
 #day-time-selection {
-    text-align: center;
-    font-size: 18px;
-    color: #ffffff; /* Make text color white */
-    margin-top: 5px;
+    position: fixed;                    /* Fixes the position relative to the viewport */
+    bottom: 60px;                       /* Positions it 60px above the bottom (slider height + spacing) */
+    left: 50%;                          /* Centers it horizontally */
+    transform: translateX(-50%);        /* Adjusts the centering */
+    background-color: rgba(51, 51, 51, 0.8); /* Semi-transparent background */
+    color: #ffffff;                     /* White text color */
+    padding: 10px 20px;                 /* Inner spacing */
+    border-radius: 5px;                 /* Rounded corners */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+    z-index: 1000;                      /* Ensures it appears above the map and slider */
+    font-size: 16px;                    /* Readable font size */
+    text-align: center;                 /* Centers the text */
+    transition: bottom 0.3s ease, opacity 0.3s ease; /* Smooth transitions */
+    opacity: 1;                         /* Fully visible by default */
+}
+
+/* Optional: Slightly fade the text when the side menu is open */
+#container.menu-open #day-time-selection {
+    opacity: 0.9; /* Slightly transparent */
 }
 
 .close {
@@ -186,4 +299,56 @@ button.selected {
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+/* Responsive Design: Adjustments for smaller screens */
+@media (max-width: 768px) {
+    /* Adjust side menu width */
+    #sideMenu.open {
+        width: 200px; /* Reduced width for mobile */
+    }
+
+    /* Adjust #menuToggle position when Side Menu is open */
+    #container.menu-open #menuToggle {
+        right: 210px; /* sideMenu width (200px) + right spacing (10px) */
+    }
+
+    /* Adjust Static Text Container max-width */
+    #staticTextContainer {
+        width: 90%; /* Increase width for better visibility */
+        max-width: calc(100% - 210px); /* Adjust for side menu width */
+        left: calc(50% - 105px);       /* Adjust positioning */
+    }
+
+     /* Adjust Static Text Container max-width */
+     #day-time-selection {
+        width: 90%;                         /* Increase width for better visibility */
+        max-width: calc(100% - 210px);      /* Adjust for side menu width */
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 14px;                    /* Slightly smaller font size */
+        padding: 8px 16px;                  /* Adjust padding */
+    }
+
+    /* Adjust menu toggle button size */
+    #menuToggle {
+        font-size: 24px; /* Smaller font size */
+        padding: 8px 16px; /* Adjust padding */
+        min-width: 44px; /* Minimum touch target size */
+        min-height: 44px;
+    }
+
+    /* Adjust layer labels font size */
+    .layer-label {
+        font-size: 14px;
+    }
+      /* Adjust Day-Time Text position if necessary */
+      #day-time-selection {
+        bottom: 70px;                       /* Adjust if slider height changes */
+    }
+
+    /* Adjust slider width */
+    .slider {
+        width: 80%;                         /* Further reduce width on smaller screens */
+    }
 }
