@@ -168,7 +168,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
                     fillColor: feature.properties.color || '#ff0000',
                     weight: 0.5,
                     opacity: 0.25,
-                    fillOpacity: 025,
+                    fillOpacity: 0.25,
                 };
             },
             onEachFeature: function (feature, layer) {
