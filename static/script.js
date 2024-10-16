@@ -192,7 +192,6 @@ const removeAllLayers = () => {
     });
 };
 
-// Function to initialize the map and set up event listeners
 const initializeMap = () => {
     console.log('initializeMap called');
 
@@ -201,10 +200,39 @@ const initializeMap = () => {
 
     if (totalPeriods > 0) {
         dateTimeSlider.max = totalPeriods - 1; // Set the slider's max value
-        updateDisplayedDate(); // Set the initial displayed date
 
-        // Plot layers based on the default selection
-        updateLayersForSelectedDateAndTime(0, 0);
+        // Get today's date and time
+        const today = new Date();
+        const yy = String(today.getFullYear()).slice(-2);
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayYymmdd = yy + mm + dd;
+
+        // Find currentDateIndex
+        currentDateIndex = uniqueDates.findIndex(dateObj => dateObj.yymmdd === todayYymmdd);
+        if (currentDateIndex === -1) {
+            // If today's date is not in uniqueDates, default to 0
+            currentDateIndex = 0;
+        }
+
+        // Get current time index
+        const currentHour = today.getHours();
+        currentTimeIndex = getClosestTimeIndex(currentHour);
+
+        // Compute combined index
+        let combinedIndex = currentDateIndex * timePeriods.length + currentTimeIndex;
+
+        // Ensure combinedIndex is within the slider's range
+        if (combinedIndex > dateTimeSlider.max) {
+            combinedIndex = dateTimeSlider.max;
+        }
+
+        dateTimeSlider.value = combinedIndex;
+
+        updateDisplayedDate(); // Update the displayed date
+
+        // Plot layers based on the current selection
+        updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
     } else {
         const dateDisplay = document.getElementById("day-time-text");
         dateDisplay.textContent = 'No Data Available';
@@ -224,7 +252,6 @@ const initializeMap = () => {
         updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
     });
 };
-
 // Function to set up layer toggles
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
