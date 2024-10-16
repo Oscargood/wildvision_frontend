@@ -18,29 +18,46 @@ setInterval(() => {
   noteIndex = (noteIndex + 1) % behaviourNotes.length;
 }, 5000);
 
-// // Modal Popup Logic
-// const modal = document.getElementById('popupModal'); // Reference to the modal element
-// const infoButton = document.getElementById('infoButton'); // Reference to the "Info" button
-// const closeModal = document.querySelector('.close'); // Reference to the close (X) button
+// Declare layerDropdown and layerDropdownBtn in a higher scope
+let layerDropdown;
+let layerDropdownBtn;
 
+// Initialize the map on window load
 window.addEventListener('load', function() {
-    // modal.style.display = 'block'; // Show the modal
-    initializeMap(); // Initialize the map and display behavior decisions
+    console.log('Window loaded and script running');
+
+    // Initialize the map
+    initializeMap();
+
+    // Add event listeners for the dropdown
+    layerDropdownBtn = document.getElementById('layerDropdownBtn');
+    layerDropdown = document.getElementById('layerDropdown');
+
+    // Check if the elements exist
+    if (layerDropdownBtn && layerDropdown) {
+        console.log('Attaching click event listener to layerDropdownBtn');
+        // Toggle the dropdown when the button is clicked
+        layerDropdownBtn.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent the event from bubbling up
+            console.log('Dropdown button clicked');
+            console.log('Before toggle:', layerDropdown.className);
+            layerDropdown.classList.toggle('show');
+            console.log('After toggle:', layerDropdown.className);
+        });
+
+        // Close the dropdown if the user clicks outside of it
+        window.addEventListener('click', (event) => {
+            if (
+                event.target !== layerDropdownBtn && // If the click is not on the button
+                !layerDropdown.contains(event.target) // And not inside the dropdown
+            ) {
+                layerDropdown.classList.remove('show');
+            }
+        });
+    } else {
+        console.error('Dropdown elements not found.');
+    }
 });
-
-// infoButton.onclick = function() {
-//     modal.style.display = 'block'; // Show the modal when Info button is clicked
-// };
-
-// closeModal.onclick = function() {
-//     modal.style.display = 'none'; // Hide the modal when the close button is clicked
-// };
-
-// window.onclick = function(event) {
-//     if (event.target == modal) {
-//         modal.style.display = 'none'; // Hide the modal if the user clicks outside the modal
-//     }
-// };
 
 // Initialize the map and set its view to New Zealand with a zoom level
 const map = L.map("map").setView([-43.446754, 171.592242], 7);
@@ -59,33 +76,40 @@ const cloudLayerGroup = L.layerGroup();
 const redDeerLayerGroup = L.layerGroup();
 const vegetationLayerGroup = L.layerGroup();
 
-
 // Variables to store date and time period indices
 let currentDateIndex = 0;
 let currentTimeIndex = 0;
-let dateTimeSliderInterval = null;
 
 // Define the time periods as strings with leading zeros
 const timePeriods = ['01', '04', '07', '10', '13', '16', '19', '22'];
 
-// Function to get an array of dates in yymmdd format for the next 4 days
-function getDatesArray(numDays) {
+// Function to get an array of dates in yymmdd format for October 14th and 15th
+function getDatesArray() {
     const dates = [];
-    const today = new Date();
-    for (let i = 0; i < numDays; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
+    const dateStrings = ['2023-10-14', '2023-10-15'];
+
+    dateStrings.forEach(dateStr => {
+        const date = new Date(dateStr);
         const yy = String(date.getFullYear()).slice(-2);
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
         const yymmdd = yy + mm + dd;
-        dates.push({ date: `${yy}-${mm}-${dd}`, readable: `${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, yymmdd });
-    }
+        dates.push({
+            date: `${yy}-${mm}-${dd}`,
+            readable: `${date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })}`,
+            yymmdd
+        });
+    });
     return dates;
 }
 
 // Get the unique dates
-const uniqueDates = getDatesArray(4); // 4 days' worth of files
+const uniqueDates = getDatesArray();
 
 // Update the displayed date information
 function updateDisplayedDate() {
@@ -178,6 +202,8 @@ const removeAllLayers = () => {
 
 // Function to initialize the map and set up event listeners
 const initializeMap = () => {
+    console.log('initializeMap called');
+
     const dateTimeSlider = document.getElementById('DateTimeSlider');
     const totalPeriods = uniqueDates.length * timePeriods.length;
 
@@ -188,37 +214,26 @@ const initializeMap = () => {
         // Plot layers based on the default selection
         updateLayersForSelectedDateAndTime(0, 0);
     } else {
+        const dateDisplay = document.getElementById("day-time-text");
         dateDisplay.textContent = 'No Data Available';
     }
 
-    // Initialize Play/Pause button for the combined slider
-    initializePlayPauseButtons();
-
     // Set up layer toggles
     setupLayerToggles();
+
+    // Add event listener for the date-time slider
+    dateTimeSlider.addEventListener('input', () => {
+        const combinedIndex = parseInt(dateTimeSlider.value);
+        currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
+        currentTimeIndex = combinedIndex % timePeriods.length;
+
+        updateDisplayedDate();
+        // Update layers for the new date and time
+        updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
+    });
 };
 
-// Add a flag variable to indicate programmatic changes
-let isProgrammaticChange = false;
-
-// Add event listeners for the dropdown
-const layerDropdownBtn = document.getElementById('layerDropdownBtn');
-const layerDropdown = document.getElementById('layerDropdown');
-
-// Toggle the dropdown when the button is clicked
-layerDropdownBtn.addEventListener('click', (event) => {
-    event.stopPropagation(); // Prevent event from bubbling up
-    layerDropdown.classList.toggle('show');
-});
-
-// Close the dropdown if the user clicks outside of it
-window.addEventListener('click', (event) => {
-    if (!layerDropdown.contains(event.target)) {
-        layerDropdown.classList.remove('show');
-    }
-});
-
-// Adjusted setupLayerToggles function
+// Function to set up layer toggles
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
 
@@ -236,7 +251,9 @@ const setupLayerToggles = () => {
                 map.addLayer(layerGroup); // Add the layer group to the map
             }
             // If 'none' is selected, no layers are displayed (already removed)
-            layerDropdown.classList.remove('show');
+
+            // Close the dropdown menu
+            // layerDropdown.classList.remove('show');
         });
     });
 };
@@ -276,34 +293,5 @@ const updateLayersForSelectedDateAndTime = async (dateIndex, timeIndex) => {
         const layerGroup = getLayerGroupById(selection.id);
         await plotDataLayer(layerGroup, selection.id, dateIndex, timeIndex);
         map.addLayer(layerGroup); // Ensure the layer group is added to the map
-    }
-};
-
-// Function to initialize Play/Pause button for the combined slider
-const initializePlayPauseButtons = () => {
-    const dateTimePlayPauseBtn = document.getElementById('DateTimePlayPause');
-    const dateTimeSlider = document.getElementById('DateTimeSlider');
-    const totalPeriods = uniqueDates.length * timePeriods.length;
-
-    if (dateTimePlayPauseBtn) {
-        dateTimePlayPauseBtn.addEventListener('click', () => {
-            if (!dateTimeSliderInterval) {
-                dateTimePlayPauseBtn.textContent = 'Pause';
-                dateTimeSliderInterval = setInterval(() => {
-                    const combinedIndex = (parseInt(dateTimeSlider.value) + 1) % totalPeriods;
-                    dateTimeSlider.value = combinedIndex;
-                    currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
-                    currentTimeIndex = combinedIndex % timePeriods.length;
-
-                    updateDisplayedDate();
-                    // Update layers for the new combined date and time period
-                    updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
-                }, 1000); // Change every 1 second
-            } else {
-                dateTimePlayPauseBtn.textContent = 'Play';
-                clearInterval(dateTimeSliderInterval);
-                dateTimeSliderInterval = null;
-            }
-        });
     }
 };
