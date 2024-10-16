@@ -18,10 +18,6 @@ setInterval(() => {
   noteIndex = (noteIndex + 1) % behaviourNotes.length;
 }, 5000);
 
-// Declare layerDropdown and layerDropdownBtn in a higher scope
-let layerDropdown;
-let layerDropdownBtn;
-
 // Initialize the map on window load
 window.addEventListener('load', function() {
     console.log('Window loaded and script running');
@@ -29,34 +25,22 @@ window.addEventListener('load', function() {
     // Initialize the map
     initializeMap();
 
-    // Add event listeners for the dropdown
-    layerDropdownBtn = document.getElementById('layerDropdownBtn');
-    layerDropdown = document.getElementById('layerDropdown');
+    // Add event listener for the menu toggle button
+    const menuToggleBtn = document.getElementById('menuToggle');
+    const sideMenu = document.getElementById('sideMenu');
+    const container = document.getElementById('container');
 
-    // Check if the elements exist
-    if (layerDropdownBtn && layerDropdown) {
-        console.log('Attaching click event listener to layerDropdownBtn');
-        // Toggle the dropdown when the button is clicked
-        layerDropdownBtn.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent the event from bubbling up
-            console.log('Dropdown button clicked');
-            console.log('Before toggle:', layerDropdown.className);
-            layerDropdown.classList.toggle('show');
-            console.log('After toggle:', layerDropdown.className);
-        });
+    menuToggleBtn.addEventListener('click', function() {
+        sideMenu.classList.toggle('open');
+        container.classList.toggle('menu-open'); // Toggle 'menu-open' class on #container
+    });
 
-        // Close the dropdown if the user clicks outside of it
-        window.addEventListener('click', (event) => {
-            if (
-                event.target !== layerDropdownBtn && // If the click is not on the button
-                !layerDropdown.contains(event.target) // And not inside the dropdown
-            ) {
-                layerDropdown.classList.remove('show');
-            }
-        });
-    } else {
-        console.error('Dropdown elements not found.');
-    }
+    // Adjust the map size after the transition ends
+    sideMenu.addEventListener('transitionend', function(e) {
+        if (e.propertyName === 'width') {
+            map.invalidateSize();
+        }
+    });
 });
 
 // Initialize the map and set its view to New Zealand with a zoom level
@@ -176,7 +160,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
                 const popupContent = `
                     <strong>${layerType.replace('_', ' ')} Data</strong><br>
                     Date: ${selectedDate}<br>
-                    Time Period: ${selectedTimePeriod}<br>
+                    Time Period: ${selectedTimePeriod}:00<br>
                     ${Object.keys(props).map(key => `${key}: ${props[key]}`).join('<br>')}
                 `;
                 layer.bindPopup(popupContent);
@@ -267,7 +251,7 @@ const initializeMap = () => {
     });
 };
 
-// Add the getClosestTimeIndex function outside of initializeMap
+// Function to get the closest time index based on current hour
 function getClosestTimeIndex(currentHour) {
     const timePeriodsNumbers = timePeriods.map(tp => parseInt(tp));
     for (let i = timePeriodsNumbers.length - 1; i >= 0; i--) {
@@ -279,9 +263,10 @@ function getClosestTimeIndex(currentHour) {
     return 0;
 }
 
-// Function to set up layer toggles
+/// Function to set up layer toggles
 const setupLayerToggles = () => {
-    const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
+    // Select the layer buttons inside the sideMenu
+    const layerButtons = document.querySelectorAll('#sideMenu input[name="layer-toggle"]');
 
     layerButtons.forEach(button => {
         button.addEventListener('change', async (event) => {
@@ -292,19 +277,23 @@ const setupLayerToggles = () => {
 
             if (selectedLayerId !== 'none') {
                 const layerGroup = getLayerGroupById(selectedLayerId);
-                // Layer is selected, plot the data for the current date and time period
-                await plotDataLayer(layerGroup, selectedLayerId, currentDateIndex, currentTimeIndex);
-                map.addLayer(layerGroup); // Add the layer group to the map
+                if (layerGroup) {
+                    // Layer is selected, plot the data for the current date and time period
+                    await plotDataLayer(layerGroup, selectedLayerId, currentDateIndex, currentTimeIndex);
+                    map.addLayer(layerGroup); // Add the layer group to the map
+                }
             }
-            // If 'none' is selected, no layers are displayed (already removed)
+            // If 'none' is selected, no layers are displayed
 
-            // Close the dropdown menu
-            // layerDropdown.classList.remove('show');
+            // Optionally, close the side menu after selection
+            // const sideMenu = document.getElementById('sideMenu');
+            // sideMenu.classList.remove('open');
+            // document.getElementById('container').classList.remove('menu-open');
         });
     });
 };
 
-// Helper function to get the corresponding layer group by checkbox ID
+// Helper function to get the corresponding layer group by radio button ID
 const getLayerGroupById = (id) => {
     switch (id) {
         case 'animal_behaviour':
@@ -337,7 +326,22 @@ const updateLayersForSelectedDateAndTime = async (dateIndex, timeIndex) => {
     if (layerSelections.length > 0) {
         const selection = layerSelections[0];
         const layerGroup = getLayerGroupById(selection.id);
-        await plotDataLayer(layerGroup, selection.id, dateIndex, timeIndex);
-        map.addLayer(layerGroup); // Ensure the layer group is added to the map
+        if (layerGroup) {
+            await plotDataLayer(layerGroup, selection.id, dateIndex, timeIndex);
+            map.addLayer(layerGroup); // Ensure the layer group is added to the map
+        }
     }
 };
+
+// Close side menu when clicking outside
+window.addEventListener('click', function(event) {
+    const sideMenu = document.getElementById('sideMenu');
+    const menuToggleBtn = document.getElementById('menuToggle');
+    const container = document.getElementById('container');
+    
+    // Check if the click is outside the side menu and the toggle button
+    if (!sideMenu.contains(event.target) && !menuToggleBtn.contains(event.target)) {
+        sideMenu.classList.remove('open');
+        container.classList.remove('menu-open');
+    }
+});
