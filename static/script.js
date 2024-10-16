@@ -103,6 +103,20 @@ function getDatesArray(numDays) {
 // Get the unique dates
 const uniqueDates = getDatesArray(4); // 4 days' worth of files
 
+// Get today's date and format it
+const today = new Date();
+const yy = String(today.getFullYear()).slice(-2);
+const mm = String(today.getMonth() + 1).padStart(2, '0');
+const dd = String(today.getDate()).padStart(2, '0');
+const todayYymmdd = yy + mm + dd;
+
+// Find the index of today's date in uniqueDates
+currentDateIndex = uniqueDates.findIndex(dateObj => dateObj.yymmdd === todayYymmdd);
+if (currentDateIndex === -1) {
+    // If today's date is not found, default to the first date
+    currentDateIndex = 0;
+}
+
 // Update the displayed date information
 function updateDisplayedDate() {
     const dateDisplay = document.getElementById("day-time-text");
@@ -252,6 +266,19 @@ const initializeMap = () => {
         updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
     });
 };
+
+// Add the getClosestTimeIndex function outside of initializeMap
+function getClosestTimeIndex(currentHour) {
+    const timePeriodsNumbers = timePeriods.map(tp => parseInt(tp));
+    for (let i = timePeriodsNumbers.length - 1; i >= 0; i--) {
+        if (currentHour >= timePeriodsNumbers[i]) {
+            return i;
+        }
+    }
+    // If currentHour is less than all time periods, return 0
+    return 0;
+}
+
 // Function to set up layer toggles
 const setupLayerToggles = () => {
     const layerButtons = document.querySelectorAll('input[name="layer-toggle"]');
