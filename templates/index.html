@@ -10,18 +10,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 
-<body>
-    <!-- Main container with adjustable background -->
-    <div id="container">
-        <!-- Buttons above the map -->
-        <div id="top-buttons">
-            <button id="infoButton">Info</button>
-            <div id="static_text_box">General animal behaviour notes</div>
-        </div>
+<div id="container">
+    <!-- Buttons above the map -->
+    <div id="top-buttons">
+        <div id="static_text_box">General animal behaviour notes</div>
+    </div>
 
-        <!-- Map container -->
-<div id="map">
-    <!-- Layer toggle dropdown -->
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <!-- Move the dropdown outside the map div -->
     <div id="layerDropdown" class="dropdown">
         <button id="layerDropdownBtn" class="dropbtn">Layers ▼</button>
         <div id="layerDropdownContent" class="dropdown-content">
@@ -65,7 +63,7 @@
         </div>
         <div id="date-time-slider-container">
             <input type="range" id="DateTimeSlider" min="0" step="1" class="slider">
-            <button id="DateTimePlayPause">Play</button>
+            <!-- <button id="DateTimePlayPause">Play</button> -->
         </div>
     </div>
     <!-- Leaflet JS -->
