@@ -23,10 +23,10 @@ setInterval(() => {
 // const infoButton = document.getElementById('infoButton'); // Reference to the "Info" button
 // const closeModal = document.querySelector('.close'); // Reference to the close (X) button
 
-// window.addEventListener('load', function() {
-//     modal.style.display = 'block'; // Show the modal
-//     initializeMap(); // Initialize the map and display behavior decisions
-// });
+window.addEventListener('load', function() {
+    modal.style.display = 'block'; // Show the modal
+    initializeMap(); // Initialize the map and display behavior decisions
+});
 
 // infoButton.onclick = function() {
 //     modal.style.display = 'block'; // Show the modal when Info button is clicked
