@@ -18,29 +18,29 @@ setInterval(() => {
   noteIndex = (noteIndex + 1) % behaviourNotes.length;
 }, 5000);
 
-// Modal Popup Logic
-const modal = document.getElementById('popupModal'); // Reference to the modal element
-const infoButton = document.getElementById('infoButton'); // Reference to the "Info" button
-const closeModal = document.querySelector('.close'); // Reference to the close (X) button
+// // Modal Popup Logic
+// const modal = document.getElementById('popupModal'); // Reference to the modal element
+// const infoButton = document.getElementById('infoButton'); // Reference to the "Info" button
+// const closeModal = document.querySelector('.close'); // Reference to the close (X) button
 
-window.addEventListener('load', function() {
-    modal.style.display = 'block'; // Show the modal
-    initializeMap(); // Initialize the map and display behavior decisions
-});
+// window.addEventListener('load', function() {
+//     modal.style.display = 'block'; // Show the modal
+//     initializeMap(); // Initialize the map and display behavior decisions
+// });
 
-infoButton.onclick = function() {
-    modal.style.display = 'block'; // Show the modal when Info button is clicked
-};
+// infoButton.onclick = function() {
+//     modal.style.display = 'block'; // Show the modal when Info button is clicked
+// };
 
-closeModal.onclick = function() {
-    modal.style.display = 'none'; // Hide the modal when the close button is clicked
-};
+// closeModal.onclick = function() {
+//     modal.style.display = 'none'; // Hide the modal when the close button is clicked
+// };
 
-window.onclick = function(event) {
-    if (event.target == modal) {
-        modal.style.display = 'none'; // Hide the modal if the user clicks outside the modal
-    }
-};
+// window.onclick = function(event) {
+//     if (event.target == modal) {
+//         modal.style.display = 'none'; // Hide the modal if the user clicks outside the modal
+//     }
+// };
 
 // Initialize the map and set its view to New Zealand with a zoom level
 const map = L.map("map").setView([-43.446754, 171.592242], 7);
