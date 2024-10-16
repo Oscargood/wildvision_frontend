@@ -4,6 +4,7 @@ html, body {
     margin: 0;
     padding: 0;
     background-color: var(--container-bg-color, #2b2929);
+    font-family: 'Avenir', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 /* Wrapper/container for map and buttons with adjustable background */
@@ -34,7 +35,8 @@ button.selected {
 }
 
 #static_text_box {
-    padding: 10px;
+    padding: 0px;
+    height: 40px;
     display: flex;
     align-items: center;
     font-size: 16px;
@@ -60,6 +62,7 @@ button.selected {
     color: white; /* White text */
     padding: 10px;
     font-size: 16px;
+    border-radius: 5px;
     border: none;
     cursor: pointer;
 }
@@ -104,7 +107,7 @@ button.selected {
     position: absolute; /* Absolute positioning */
     top: 10px; /* Adjust as needed */
     right: 50px; /* Adjust as needed */
-    background-color: #5d5223; ; /* Slightly increased opacity for better visibility */
+    background-color: #2b2929; ; /* Slightly increased opacity for better visibility */
     border-radius: 5px; /* Rounded corners */
     padding: 10px; /* Inner padding */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
@@ -114,17 +117,18 @@ button.selected {
 /* Menu content styles */
 .layer-label {
     display: block; /* Stack labels vertically */
-    color: #000; /* Text color for labels */
+    color: #ffffff; /* Text color for labels */
 }
 
-/* Date-time slider styles */
 #date-time-slider-container {
-    width: 100%; /* Ensure it takes the full width of the map */
-    background: #5d5223; ; /* 50% opacity background */
-    padding: 1px; /* Inner padding */
-    border-radius: 5px; /* Rounded corners */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
-    margin: 0px auto; /* Center the slider and add margin */
+    position: fixed; /* Fix the slider to the viewport */
+    bottom: 0; /* Align it to the bottom */
+    left: 0; /* Align it to the left */
+    width: 100%; /* Full width */
+    background: #2b2929; /* Background color */
+    padding: 0px; /* Adjust padding as needed */
+    box-sizing: border-box; /* Include padding in the width */
+    z-index: 1000; /* Ensure it appears above other elements */
 }
 
 /* Styling for the range slider */
@@ -132,12 +136,12 @@ button.selected {
     width: 100%; /* Full width of the parent container */
     -webkit-appearance: none;
     appearance: none;
-    height: 3%;
+    height: 10px;
     background: #000;
     outline: none;
     opacity: 1;
     transition: opacity .2s;
-    border-radius: 1px;
+    border-radius: 0px;
 }
 
 .slider:hover {
@@ -148,18 +152,18 @@ button.selected {
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     background:  rgb(210, 154, 66);
     cursor: pointer;
-    border-radius: 0%;
+    border-radius: 100%;
 }
 .slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     background: rgb(210, 154, 66);
     cursor: pointer;
-    border-radius: 0%;
+    border-radius: 100%;
 }
 
 /* Day and time selection display */
