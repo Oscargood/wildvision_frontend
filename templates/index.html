@@ -10,19 +10,25 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 
-<div id="container">
-    <!-- Buttons above the map -->
-    <div id="top-buttons">
-        <div id="static_text_box"></div>
-    </div>
+<body>
+    <div id="container">
+        <!-- Map container -->
+        <div id="map"></div>
 
-    <!-- Map container -->
-    <div id="map"></div>
+        <!-- Static text box over the map -->
+        <div id="staticTextContainer">
+            <div id="static_text_box"></div>
+        </div>
 
-    <!-- Move the dropdown outside the map div -->
-    <div id="layerDropdown" class="dropdown">
-        <button id="layerDropdownBtn" class="dropbtn">Layers ▼</button>
-        <div id="layerDropdownContent" class="dropdown-content">
+        <!-- Buttons above the map -->
+        <div id="top-buttons">
+            <!-- Menu toggle button -->
+            <button id="menuToggle">☰</button>
+        </div>
+
+        <!-- Side menu -->
+        <div id="sideMenu">
+            <h2>Layers</h2>
             <label class="layer-label">
                 <input type="radio" name="layer-toggle" id="animal_behaviour" class="layer-button" checked>
                 Animal Behaviour
@@ -56,16 +62,19 @@
                 None
             </label>
         </div>
+    </div> <!-- Closing #container -->
+
+    <!-- Day-time selection -->
+    <div id="day-time-selection">
+        <span id="day-time-text"></span>
     </div>
-</div>
-        <div id="day-time-selection">
-            <span id="day-time-text"></span>
-        </div>
-        <div id="date-time-slider-container">
-            <input type="range" id="DateTimeSlider" min="0" step="1" class="slider">
-            <!-- <button id="DateTimePlayPause">Play</button> -->
-        </div>
+
+    <!-- Date-time slider container -->
+    <div id="date-time-slider-container">
+        <input type="range" id="DateTimeSlider" min="0" step="1" class="slider">
+        <!-- <button id="DateTimePlayPause">Play</button> -->
     </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
