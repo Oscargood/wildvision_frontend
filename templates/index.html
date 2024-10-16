@@ -5,10 +5,16 @@
     <meta charset="UTF-8">
     <title>Wildvision</title>
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      integrity="sha512-XodZBntM13MgBg2uLcE5Wf+HwkaJtYfiagz7gFGOm6jH6GGxCzgnBqc5pF4QZvxCuLaeFtEULBz7jp0tbCOmQ=="
+      crossorigin=""
+    />
     <!-- Your external CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
+
 <body>
     <!-- Main container with adjustable background -->
     <div id="container">
@@ -19,37 +25,54 @@
         </div>
 
         <!-- Map container -->
-        <div id="map">
-            <!-- Layer toggle dropdown -->
-            <div id="layerDropdown" class="dropdown">
-                <button id="layerDropdownBtn" class="dropbtn">Layers ▼</button>
-                <div id="layerDropdownContent" class="dropdown-content">
-                    <!-- Layer options -->
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="animal_behaviour" class="layer-button" checked>
-                        Animal Behaviour
-                    </label>
-                    <!-- Add other layer labels here -->
-                    <label class="layer-label">
-                        <input type="radio" name="layer-toggle" id="none" class="layer-button">
-                        None
-                    </label>
-                </div>
-            </div>
-        </div> <!-- Closing #map -->
-
-        <!-- Day-time selection -->
+<div id="map">
+    <!-- Layer toggle dropdown -->
+    <div id="layerDropdown" class="dropdown">
+        <button id="layerDropdownBtn" class="dropbtn">Layers ▼</button>
+        <div id="layerDropdownContent" class="dropdown-content">
+            <label class="layer-label">
+                <input type="radio" name="layer-toggle" id="animal_behaviour" class="layer-button" checked>
+                Animal Behaviour
+            </label>
+            <label class="layer-label">
+                <input type="radio" name="layer-toggle" id="temperature" class="layer-button">
+                Temperature
+            </label>
+            <label class="layer-label">
+                <input type="radio" name="layer-toggle" id="rain" class="layer-button">
+                Rain
+            </label>
+            <label class="layer-label">
+                <input type="radio" name="layer-toggle" id="wind_speed" class="layer-button">
+                Wind Speed
+            </label>
+            <label class="layer-label">
+                <input type="radio" name="layer-toggle" id="cloud_cover" class="layer-button">
+                Cloud Cover
+            </label>
+            <label class="layer-label">
+                <input type="radio" name="layer-toggle" id="red_deer_location" class="layer-button">
+                Red Deer Distribution
+            </label>
+            <label class="layer-label">
+                <input type="radio" name="layer-toggle" id="vegetation" class="layer-button">
+                Vegetation
+            </label>
+            <label class="layer-label">
+                <input type="radio" name="layer-toggle" id="none" class="layer-button">
+                None
+            </label>
+        </div>
+    </div>
+</div>
         <div id="day-time-selection">
             <span id="day-time-text"></span>
         </div>
-
-        <!-- Date-time slider container -->
         <div id="date-time-slider-container">
             <input type="range" id="DateTimeSlider" min="0" step="1" class="slider">
             <button id="DateTimePlayPause">Play</button>
         </div>
-    </div> <!-- Closing #container -->
-
+    </div>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
