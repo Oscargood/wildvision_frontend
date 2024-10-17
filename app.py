@@ -65,5 +65,18 @@ def vegetation():
 def animal_location():
     return send_from_directory(os.path.dirname(ANIMAL_LOCATION_FILE), os.path.basename(ANIMAL_LOCATION_FILE))
 
+@app.route('/available_dates', methods=['GET'])
+def available_dates():
+    animal_behaviour_times = get_time_periods(ANIMAL_DIR, 'animal_behaviour')
+    weather_times = get_time_periods(WEATHER_DIR, 'cloud_cover')  # Assuming all weather layers have the same dates
+    
+    # Extract unique dates from animal_behaviour_times
+    unique_dates = sorted(list({item['time'][:10] for item in animal_behaviour_times}))
+    
+    return jsonify({
+        'dates': unique_dates,
+        'time_periods': timePeriods  # ['01', '04', '07', '10', '13', '16', '19', '22']
+    })
+
 if __name__ == '__main__':
     app.run(debug=True)
