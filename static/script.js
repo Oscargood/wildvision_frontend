@@ -69,51 +69,153 @@ let dateTimeSliderInterval = null;
 const timePeriods = ['01', '04', '07', '10', '13', '16', '19', '22'];
 
 // Function to get an array of dates in yymmdd format for the next 4 days
-function getDatesArray(numDays) {
-    const dates = [];
-    const today = new Date();
-    for (let i = 0; i < numDays; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        const yy = String(date.getFullYear()).slice(-2);
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const dd = String(date.getDate()).padStart(2, '0');
-        const yymmdd = yy + mm + dd;
-        dates.push({ date: `${yy}-${mm}-${dd}`, readable: `${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, yymmdd });
+// Remove the existing getDatesArray and uniqueDates initialization
+
+// Fetch available dates and time periods from the backend
+async function fetchAvailableDates() {
+    try {
+        const response = await fetch('/available_dates');
+        if (!response.ok) {
+            throw new Error('Failed to fetch available dates');
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching available dates:', error);
+        return { dates: [], time_periods: [] };
     }
-    return dates;
 }
 
-console.log(dates)
+// Initialize the map on window load
+window.addEventListener('load', async function() {
+    console.log('Window loaded and script running');
 
-// Get the unique dates
-const uniqueDates = getDatesArray(4); // 4 days' worth of files
+    // Fetch available dates and time periods
+    const { dates, time_periods } = await fetchAvailableDates();
 
-// Get today's date and format it
-const today = new Date();
-const yy = String(today.getFullYear()).slice(-2);
-const mm = String(today.getMonth() + 1).padStart(2, '0');
-const dd = String(today.getDate()).padStart(2, '0');
-const todayYymmdd = yy + mm + dd;
+    if (dates.length === 0 || time_periods.length === 0) {
+        console.error('No available dates or time periods found.');
+        const dateDisplay = document.getElementById("day-time-text");
+        dateDisplay.textContent = 'No Data Available';
+        return;
+    }
 
-// Find the index of today's date in uniqueDates
-currentDateIndex = uniqueDates.findIndex(dateObj => dateObj.yymmdd === todayYymmdd);
-if (currentDateIndex === -1) {
-    // If today's date is not found, default to the first date
-    currentDateIndex = 0;
-}
+    // Initialize the map with fetched dates and times
+    initializeMap(dates, time_periods);
 
-// Update the displayed date information
-function updateDisplayedDate() {
+    // Add event listener for the menu toggle button
+    const menuToggleBtn = document.getElementById('menuToggle');
+    const sideMenu = document.getElementById('sideMenu');
+    const container = document.getElementById('container');
+
+    menuToggleBtn.addEventListener('click', function() {
+        sideMenu.classList.toggle('open');
+        container.classList.toggle('menu-open'); // Toggle 'menu-open' class on #container
+    });
+
+    // Adjust the map size after the transition ends
+    sideMenu.addEventListener('transitionend', function(e) {
+        if (e.propertyName === 'width') {
+            map.invalidateSize();
+        }
+    });
+});
+
+// Modify initializeMap to accept dynamic dates and time periods
+const initializeMap = (uniqueDates, timePeriods) => {
+    console.log('initializeMap called');
+
+    const dateTimeSlider = document.getElementById('DateTimeSlider');
+    const totalPeriods = uniqueDates.length * timePeriods.length;
+
+    if (totalPeriods > 0) {
+        dateTimeSlider.max = totalPeriods - 1; // Set the slider's max value
+
+        // Determine the current date and time index based on availability
+        const today = new Date();
+        const yy = String(today.getFullYear()).slice(-2);
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayYymmdd = `${yy}-${mm}-${dd}`;
+
+        // Find the index of today's date
+        currentDateIndex = uniqueDates.findIndex(dateObj => dateObj === todayYymmdd);
+        if (currentDateIndex === -1) {
+            // If today's date is not found, default to the first date
+            currentDateIndex = 0;
+        }
+
+        // Get current time index
+        const currentHour = today.getHours();
+        currentTimeIndex = getClosestTimeIndex(currentHour, timePeriods);
+
+        // Compute combined index
+        let combinedIndex = currentDateIndex * timePeriods.length + currentTimeIndex;
+
+        // Ensure combinedIndex is within the slider's range
+        if (combinedIndex > dateTimeSlider.max) {
+            combinedIndex = dateTimeSlider.max;
+        }
+
+        dateTimeSlider.value = combinedIndex;
+
+        updateDisplayedDate(uniqueDates, timePeriods); // Update the displayed date
+
+        // Plot layers based on the current selection
+        updateLayersForSelectedDateAndTime(uniqueDates, timePeriods, currentDateIndex, currentTimeIndex);
+    } else {
+        const dateDisplay = document.getElementById("day-time-text");
+        dateDisplay.textContent = 'No Data Available';
+    }
+
+    // Set up layer toggles
+    setupLayerToggles();
+
+    // Add event listener for the date-time slider
+    dateTimeSlider.addEventListener('input', () => {
+        const combinedIndex = parseInt(dateTimeSlider.value);
+        currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
+        currentTimeIndex = combinedIndex % timePeriods.length;
+
+        updateDisplayedDate(uniqueDates, timePeriods);
+        // Update layers for the new date and time
+        updateLayersForSelectedDateAndTime(uniqueDates, timePeriods, currentDateIndex, currentTimeIndex);
+    });
+};
+
+// Update updateDisplayedDate to accept parameters
+function updateDisplayedDate(uniqueDates, timePeriods) {
     const dateDisplay = document.getElementById("day-time-text");
     const selectedDate = uniqueDates[currentDateIndex];
-    dateDisplay.textContent = `${selectedDate.readable} - Time: ${timePeriods[currentTimeIndex]}:00`;
+    const selectedTime = timePeriods[currentTimeIndex];
+    const readableDate = new Date(selectedDate).toLocaleDateString('en-US', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+    });
+    dateDisplay.textContent = `${readableDate} - Time: ${selectedTime}:00`;
 }
 
-const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
+// Update updateLayersForSelectedDateAndTime to accept parameters
+const updateLayersForSelectedDateAndTime = async (uniqueDates, timePeriods, dateIndex, timeIndex) => {
+    const layerSelections = document.querySelectorAll('input[name="layer-toggle"]:checked');
+
+    // Since only one layer can be checked at a time, we can safely remove all layers
+    removeAllLayers();
+
+    if (layerSelections.length > 0) {
+        const selection = layerSelections[0];
+        const layerGroup = getLayerGroupById(selection.id);
+        if (layerGroup) {
+            await plotDataLayer(layerGroup, selection.id, uniqueDates, timePeriods, dateIndex, timeIndex);
+            map.addLayer(layerGroup); // Ensure the layer group is added to the map
+        }
+    }
+};
+
+// Modify plotDataLayer to accept uniqueDates and timePeriods
+const plotDataLayer = async (layerGroup, layerType, uniqueDates, timePeriods, dateIndex, timeIndex) => {
     layerGroup.clearLayers(); // Clear existing layers
 
-    const selectedDate = uniqueDates[dateIndex].yymmdd; // Use the yymmdd format
+    const selectedDate = uniqueDates[dateIndex].replace(/-/g, ''); // Convert 'YYYY-MM-DD' to 'YYYYMMDD'
     const selectedTimePeriod = timePeriods[timeIndex];
 
     // Construct the filename based on layer type
@@ -137,9 +239,9 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
         return;
     }
 
-    // Fetch the GeoJSON data
+    // Fetch the GeoJSON data with cache-busting
     try {
-        const res = await fetch(`data/${filename}`);  
+        const res = await fetch(`/data/${filename}?t=${new Date().getTime()}`);  // Added cache-busting
         if (!res.ok) {
             console.warn(`File not found: ${filename}`);
             return;
@@ -161,7 +263,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
                 const props = feature.properties;
                 const popupContent = `
                     <strong>${layerType.replace('_', ' ')} Data</strong><br>
-                    Date: ${selectedDate}<br>
+                    Date: ${selectedDate.slice(0,4)}-${selectedDate.slice(4,6)}-${selectedDate.slice(6,8)}<br>
                     Time Period: ${selectedTimePeriod}:00<br>
                     ${Object.keys(props).map(key => `${key}: ${props[key]}`).join('<br>')}
                 `;
