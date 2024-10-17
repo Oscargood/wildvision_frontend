@@ -68,21 +68,37 @@ let dateTimeSliderInterval = null;
 // Define the time periods as strings with leading zeros
 const timePeriods = ['01', '04', '07', '10', '13', '16', '19', '22'];
 
-// Function to get an array of dates in yymmdd format for the next 4 days
+// Function to get an array of dates in yymmdd format for the next `numDays` days
 function getDatesArray(numDays) {
     const dates = [];
     const today = new Date();
+    
     for (let i = 0; i < numDays; i++) {
+        // Create a new Date instance for each day to prevent mutation of the `today` object
         const date = new Date(today);
         date.setDate(today.getDate() + i);
+        
         const yy = String(date.getFullYear()).slice(-2);
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
         const dd = String(date.getDate()).padStart(2, '0');
         const yymmdd = yy + mm + dd;
-        dates.push({ date: '${yy}-${mm}-${dd}', readable: ${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}, yymmdd });
+        
+        // Use template literals correctly by enclosing the entire string in backticks
+        dates.push({ 
+            date: `${yy}-${mm}-${dd}`, 
+            readable: date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            }), 
+            yymmdd 
+        });
     }
+    
     return dates;
 }
+
 
 // Get the unique dates
 const uniqueDates = getDatesArray(4); // 4 days' worth of files
