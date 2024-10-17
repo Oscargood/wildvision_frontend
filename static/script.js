@@ -41,6 +41,10 @@ window.addEventListener('load', function() {
             map.invalidateSize();
         }
     });
+
+    // Add event listener for the Add Observation button
+    const addObservationBtn = document.getElementById('addObservationBtn');
+    addObservationBtn.addEventListener('click', toggleObservationMode);
 });
 
 // Initialize the map and set its view to New Zealand with a zoom level
@@ -190,6 +194,8 @@ const removeAllLayers = () => {
     });
 };
 
+let observationMode = false; // Flag to track if observation mode is active
+
 const initializeMap = () => {
     console.log('initializeMap called');
 
@@ -249,6 +255,9 @@ const initializeMap = () => {
         // Update layers for the new date and time
         updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
     });
+
+    // Fetch and display all observations
+    fetchAllObservations();
 };
 
 // Function to get the closest time index based on current hour
@@ -348,14 +357,13 @@ window.addEventListener('click', function(event) {
 
 // **New Observation Recording Functionality Starts Here**
 
-// Variable to store the current user's ID received via postMessage
-let currentUserId = null;
+let currentUserId = null; // To store the received user ID
 
 // Listen for messages from the parent window (Wix)
 window.addEventListener('message', (event) => {
     // For security, verify the origin of the message
     // Replace 'https://your-wix-site.com' with your actual Wix site URL
-    const allowedOrigin = 'https://www.wildvisionhunt.com/'; // TODO: Replace with your Wix site origin
+    const allowedOrigin = 'https://your-wix-site.com'; // TODO: Replace with your Wix site origin
     if (event.origin !== allowedOrigin) {
         console.warn('Origin not allowed:', event.origin);
         return;
@@ -368,8 +376,31 @@ window.addEventListener('message', (event) => {
     }
 }, false);
 
+// Function to toggle observation mode
+function toggleObservationMode() {
+    observationMode = !observationMode; // Toggle the flag
+
+    const addObservationBtn = document.getElementById('addObservationBtn');
+
+    if (observationMode) {
+        // Activate observation mode
+        addObservationBtn.classList.add('active');
+        addObservationBtn.textContent = 'Cancel Observation';
+        alert('Observation mode activated. Click on the map to add observations.');
+    } else {
+        // Deactivate observation mode
+        addObservationBtn.classList.remove('active');
+        addObservationBtn.textContent = 'Add Animal Observation';
+    }
+}
+
 // Modify the existing map click handler to include observation recording
 map.on('click', function(e) {
+    if (!observationMode) {
+        // If observation mode is not active, do nothing or handle other click events
+        return;
+    }
+
     const lat = e.latlng.lat;
     const lng = e.latlng.lng;
     
@@ -429,7 +460,7 @@ map.on('click', function(e) {
         };
         
         try {
-            const response = await fetch('https://your-render-backend.com/api/add_observation', { // TODO: Replace with your actual Render backend URL
+            const response = await fetch('https://your-render-backend.com/api/add_observation', { // TODO: Replace with your Render backend URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -451,6 +482,8 @@ map.on('click', function(e) {
                     timestamp: new Date().toLocaleString()
                 });
                 map.closePopup();
+                // Optionally, deactivate observation mode after submission
+                toggleObservationMode();
             } else {
                 alert('Error adding observation: ' + result.message);
             }
@@ -464,7 +497,7 @@ map.on('click', function(e) {
 // Function to fetch and display all observations on map load
 async function fetchAllObservations() {
     try {
-        const response = await fetch('https://your-render-backend.com/api/get_observations'); // TODO: Replace with your actual Render backend URL
+        const response = await fetch('https://your-render-backend.com/api/get_observations'); // TODO: Replace with your Render backend URL
         const data = await response.json();
         if (data.status === 'success') {
             data.observations.forEach(obs => {
@@ -542,3 +575,149 @@ initializeMap = () => {
     // Fetch and display all observations
     fetchAllObservations();
 };
+
+// Function to create observation markers
+function addObservationMarker(obs) {
+    const marker = L.marker([obs.latitude, obs.longitude]).addTo(map);
+    marker.bindPopup(`
+        <strong>Species:</strong> ${obs.species}<br>
+        <strong>Gender:</strong> ${obs.gender}<br>
+        <strong>Quantity:</strong> ${obs.quantity}<br>
+        <strong>Time:</strong> ${obs.timestamp}
+    `);
+}
+
+// Function to toggle observation mode
+function toggleObservationMode() {
+    observationMode = !observationMode; // Toggle the flag
+
+    const addObservationBtn = document.getElementById('addObservationBtn');
+
+    if (observationMode) {
+        // Activate observation mode
+        addObservationBtn.classList.add('active');
+        addObservationBtn.textContent = 'Cancel Observation';
+        alert('Observation mode activated. Click on the map to add observations.');
+    } else {
+        // Deactivate observation mode
+        addObservationBtn.classList.remove('active');
+        addObservationBtn.textContent = 'Add Animal Observation';
+    }
+}
+
+// Modify the existing map click handler to include observation recording
+map.on('click', function(e) {
+    if (!observationMode) {
+        // If observation mode is not active, do nothing or handle other click events
+        return;
+    }
+
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    
+    // Create a popup with a form
+    const popup = L.popup()
+        .setLatLng(e.latlng)
+        .setContent(`
+            <div class="observation-form">
+                <h3>Add Observation</h3>
+                <form id="obsForm">
+                    <label for="species">Species:</label>
+                    <input type="text" id="species" name="species" required>
+                    
+                    <label for="gender">Gender:</label>
+                    <select id="gender" name="gender" required>
+                        <option value="" disabled selected>Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Unknown">Unknown</option>
+                    </select>
+                    
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" required>
+                    
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        `)
+        .openOn(map);
+    
+    // Handle form submission
+    document.getElementById('obsForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const species = document.getElementById('species').value.trim();
+        const gender = document.getElementById('gender').value;
+        const quantity = document.getElementById('quantity').value;
+        
+        if (!species || !gender || !quantity) {
+            alert('Please fill in all fields.');
+            return;
+        }
+        
+        if (!currentUserId) {
+            alert('User not logged in. Please log in to submit observations.');
+            return;
+        }
+        
+        // Prepare data to send
+        const data = {
+            species: species,
+            gender: gender,
+            quantity: parseInt(quantity),
+            latitude: lat,
+            longitude: lng,
+            userId: currentUserId
+        };
+        
+        try {
+            const response = await fetch('https://your-render-backend.com/api/add_observation', { // TODO: Replace with your Render backend URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                alert('Observation added successfully!');
+                // Add marker to the map
+                addObservationMarker({
+                    species: species,
+                    gender: gender,
+                    quantity: quantity,
+                    latitude: lat,
+                    longitude: lng,
+                    timestamp: new Date().toLocaleString()
+                });
+                map.closePopup();
+                // Optionally, deactivate observation mode after submission
+                toggleObservationMode();
+            } else {
+                alert('Error adding observation: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error submitting observation:', error);
+            alert('An error occurred while submitting your observation.');
+        }
+    });
+});
+
+// Function to fetch and display all observations on map load
+async function fetchAllObservations() {
+    try {
+        const response = await fetch('https://your-render-backend.com/api/get_observations'); // TODO: Replace with your Render backend URL
+        const data = await response.json();
+        if (data.status === 'success') {
+            data.observations.forEach(obs => {
+                addObservationMarker(obs);
+            });
+        } else {
+            console.error('Failed to fetch observations:', data.message);
+        }
+    } catch (error) {
+        console.error('Error fetching observations:', error);
+    }
+}
