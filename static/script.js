@@ -137,7 +137,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
 
     // Fetch the GeoJSON data
     try {
-        const res = await fetch(`var/data/${filename}`);  
+        const res = await fetch(`data/${filename}`);  
         if (!res.ok) {
             console.warn(`File not found: ${filename}`);
             return;
