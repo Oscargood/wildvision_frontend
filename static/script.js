@@ -276,7 +276,7 @@ let currentUserId = null; // To store the received user ID
 window.addEventListener('message', (event) => {
     // For security, verify the origin of the message
     // Replace 'https://your-wix-site.com' with your actual Wix site URL
-    const allowedOrigin = 'https://your-wix-site.com'; // TODO: Replace with your Wix site origin
+    const allowedOrigin = 'https://www.wildvisionhunt.com/'; // TODO: Replace with your Wix site origin
     if (event.origin !== allowedOrigin) {
         console.warn('Origin not allowed:', event.origin);
         return;
