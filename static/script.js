@@ -22,6 +22,21 @@ setInterval(() => {
 window.addEventListener('load', function() {
     console.log('Window loaded and script running');
 
+// Function to get the closest preceding time index based on current hour
+function getClosestTimeIndex(currentHour) {
+    // Convert timePeriods to integers for comparison
+    const timeInts = timePeriods.map(tp => parseInt(tp, 10));
+
+    // Find the last time period that is less than or equal to the current hour
+    for (let i = timeInts.length - 1; i >= 0; i--) {
+        if (currentHour >= timeInts[i]) {
+            return i;
+        }
+    }
+
+    // If no preceding time period is found, return the last index of the previous day
+    return timeInts.length - 1;
+}
     // Initialize the map
     initializeMap();
 
