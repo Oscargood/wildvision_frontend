@@ -37,6 +37,20 @@ function getClosestTimeIndex(currentHour) {
     // If no preceding time period is found, return the last index of the previous day
     return timeInts.length - 1;
 }
+
+  // Function to set up layer toggles
+function setupLayerToggles() {
+    const layerToggles = document.querySelectorAll('input[name="layer-toggle"]');
+
+    layerToggles.forEach(toggle => {
+        toggle.addEventListener('change', () => {
+            if (toggle.checked) {
+                // When a layer is selected, update the layers on the map
+                updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
+            }
+        });
+    });
+}
     // Initialize the map
     initializeMap();
 
