@@ -79,7 +79,7 @@ function getDatesArray(numDays) {
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
         const yymmdd = yy + mm + dd;
-        dates.push({ date: ${yy}-${mm}-${dd}, readable: ${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}, yymmdd });
+        dates.push({ date: '${yy}-${mm}-${dd}', readable: ${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}, yymmdd });
     }
     return dates;
 }
