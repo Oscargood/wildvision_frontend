@@ -84,6 +84,8 @@ function getDatesArray(numDays) {
     return dates;
 }
 
+console.log(dates)
+
 // Get the unique dates
 const uniqueDates = getDatesArray(4); // 4 days' worth of files
 
