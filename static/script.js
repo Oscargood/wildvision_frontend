@@ -63,7 +63,6 @@ const vegetationLayerGroup = L.layerGroup();
 // Variables to store date and time period indices
 let currentDateIndex = 0;
 let currentTimeIndex = 0;
-let dateTimeSliderInterval = null;
 
 // Define the time periods as strings with leading zeros
 const timePeriods = ['01', '04', '07', '10', '13', '16', '19', '22'];
@@ -79,7 +78,13 @@ function getDatesArray(numDays) {
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
         const yymmdd = yy + mm + dd;
-        dates.push({ date: `${yy}-${mm}-${dd}`, readable: `${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, yymmdd });
+        dates.push({ 
+            date: `${yy}-${mm}-${dd}`, 
+            readable: `${date.toLocaleDateString('en-US', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            })}`, 
+            yymmdd 
+        });
     }
     return dates;
 }
@@ -108,6 +113,7 @@ function updateDisplayedDate() {
     dateDisplay.textContent = `${selectedDate.readable} - Time: ${timePeriods[currentTimeIndex]}:00`;
 }
 
+// Function to plot data layers
 const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     layerGroup.clearLayers(); // Clear existing layers
 
@@ -190,67 +196,6 @@ const removeAllLayers = () => {
     });
 };
 
-const initializeMap = () => {
-    console.log('initializeMap called');
-
-    const dateTimeSlider = document.getElementById('DateTimeSlider');
-    const totalPeriods = uniqueDates.length * timePeriods.length;
-
-    if (totalPeriods > 0) {
-        dateTimeSlider.max = totalPeriods - 1; // Set the slider's max value
-
-        // Get today's date and time
-        const today = new Date();
-        const yy = String(today.getFullYear()).slice(-2);
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        const todayYymmdd = yy + mm + dd;
-
-        // Find currentDateIndex
-        currentDateIndex = uniqueDates.findIndex(dateObj => dateObj.yymmdd === todayYymmdd);
-        if (currentDateIndex === -1) {
-            // If today's date is not in uniqueDates, default to 0
-            currentDateIndex = 0;
-        }
-
-        // Get current time index
-        const currentHour = today.getHours();
-        currentTimeIndex = getClosestTimeIndex(currentHour);
-
-        // Compute combined index
-        let combinedIndex = currentDateIndex * timePeriods.length + currentTimeIndex;
-
-        // Ensure combinedIndex is within the slider's range
-        if (combinedIndex > dateTimeSlider.max) {
-            combinedIndex = dateTimeSlider.max;
-        }
-
-        dateTimeSlider.value = combinedIndex;
-
-        updateDisplayedDate(); // Update the displayed date
-
-        // Plot layers based on the current selection
-        updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
-    } else {
-        const dateDisplay = document.getElementById("day-time-text");
-        dateDisplay.textContent = 'No Data Available';
-    }
-
-    // Set up layer toggles
-    setupLayerToggles();
-
-    // Add event listener for the date-time slider
-    dateTimeSlider.addEventListener('input', () => {
-        const combinedIndex = parseInt(dateTimeSlider.value);
-        currentDateIndex = Math.floor(combinedIndex / timePeriods.length);
-        currentTimeIndex = combinedIndex % timePeriods.length;
-
-        updateDisplayedDate();
-        // Update layers for the new date and time
-        updateLayersForSelectedDateAndTime(currentDateIndex, currentTimeIndex);
-    });
-};
-
 // Function to get the closest time index based on current hour
 function getClosestTimeIndex(currentHour) {
     const timePeriodsNumbers = timePeriods.map(tp => parseInt(tp));
@@ -263,7 +208,7 @@ function getClosestTimeIndex(currentHour) {
     return 0;
 }
 
-/// Function to set up layer toggles
+// Function to set up layer toggles
 const setupLayerToggles = () => {
     // Select the layer buttons inside the sideMenu
     const layerButtons = document.querySelectorAll('#sideMenu input[name="layer-toggle"]');
@@ -346,7 +291,7 @@ window.addEventListener('click', function(event) {
     }
 });
 
-// **New Observation Recording Functionality Starts Here**
+// **Observation Recording Functionality Starts Here**
 
 // Variable to store the current user's ID received via postMessage
 let currentUserId = null;
@@ -354,8 +299,8 @@ let currentUserId = null;
 // Listen for messages from the parent window (Wix)
 window.addEventListener('message', (event) => {
     // For security, verify the origin of the message
-    // Replace 'https://your-wix-site.com' with your actual Wix site URL
-    const allowedOrigin = 'https://www.wildvisionhunt.com/'; // TODO: Replace with your Wix site origin
+    // Replace 'https://www.wildvisionhunt.com' with your actual Wix site URL
+    const allowedOrigin = 'https://www.wildvisionhunt.com'; // Ensure no trailing slash
     if (event.origin !== allowedOrigin) {
         console.warn('Origin not allowed:', event.origin);
         return;
@@ -368,10 +313,42 @@ window.addEventListener('message', (event) => {
     }
 }, false);
 
+// Function to toggle observation mode
+function toggleObservationMode() {
+    observationMode = !observationMode; // Toggle the flag
+
+    const addObservationBtn = document.getElementById('addObservationBtn');
+
+    if (observationMode) {
+        // Activate observation mode
+        addObservationBtn.classList.add('active');
+        addObservationBtn.textContent = 'Cancel Observation';
+        alert('Observation mode activated. Click on the map to add observations.');
+    } else {
+        // Deactivate observation mode
+        addObservationBtn.classList.remove('active');
+        addObservationBtn.textContent = 'Add Animal Observation';
+    }
+}
+
+// Initialize observation mode flag
+let observationMode = false;
+
+// Add event listener for the "Add Observation" button
+document.getElementById('addObservationBtn').addEventListener('click', toggleObservationMode);
+
 // Modify the existing map click handler to include observation recording
 map.on('click', function(e) {
+    if (!observationMode) {
+        // If observation mode is not active, do nothing or handle other click events
+        return;
+    }
+
     const lat = e.latlng.lat;
     const lng = e.latlng.lng;
+    
+    // Close any existing popup before opening a new one
+    map.closePopup();
     
     // Create a popup with a form
     const popup = L.popup()
@@ -429,17 +406,9 @@ map.on('click', function(e) {
         };
         
         try {
-            const response = await fetch('https://your-render-backend.com/api/add_observation', { // TODO: Replace with your actual Render backend URL
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
+            const response = await submitObservation(data);
             
-            const result = await response.json();
-            
-            if (result.status === 'success') {
+            if (response.status === 'success') {
                 alert('Observation added successfully!');
                 // Add marker to the map
                 addObservationMarker({
@@ -451,8 +420,10 @@ map.on('click', function(e) {
                     timestamp: new Date().toLocaleString()
                 });
                 map.closePopup();
+                // Optionally, deactivate observation mode after submission
+                toggleObservationMode();
             } else {
-                alert('Error adding observation: ' + result.message);
+                alert('Error adding observation: ' + response.message);
             }
         } catch (error) {
             console.error('Error submitting observation:', error);
@@ -461,10 +432,29 @@ map.on('click', function(e) {
     });
 });
 
+// Function to add observation marker to the map
+function addObservationMarker(obs) {
+    const marker = L.marker([obs.latitude, obs.longitude]).addTo(map);
+    const popupContent = `
+        <strong>Observation</strong><br>
+        Species: ${obs.species}<br>
+        Gender: ${obs.gender}<br>
+        Quantity: ${obs.quantity}<br>
+        Timestamp: ${obs.timestamp}
+    `;
+    marker.bindPopup(popupContent);
+}
+
 // Function to fetch and display all observations on map load
 async function fetchAllObservations() {
     try {
-        const response = await fetch('https://your-render-backend.com/api/get_observations'); // TODO: Replace with your actual Render backend URL
+        const response = await fetch('https://observations-backend.onrender.com/api/get_observations', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'your_secure_api_key_here' // Securely manage your API key
+            }
+        });
         const data = await response.json();
         if (data.status === 'success') {
             data.observations.forEach(obs => {
@@ -478,8 +468,27 @@ async function fetchAllObservations() {
     }
 }
 
-// Call fetchAllObservations when initializing the map
-initializeMap = () => {
+// Function to submit observation data to the backend
+async function submitObservation(observationData) {
+    try {
+        const response = await fetch('https://observations-backend.onrender.com/api/add_observation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'your_secure_api_key_here' // Securely manage your API key
+            },
+            body: JSON.stringify(observationData)
+        });
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error submitting observation:', error);
+        throw error;
+    }
+}
+
+// Function to fetch and display all observations when initializing the map
+function initializeMap() {
     console.log('initializeMap called');
 
     const dateTimeSlider = document.getElementById('DateTimeSlider');
@@ -541,27 +550,4 @@ initializeMap = () => {
 
     // Fetch and display all observations
     fetchAllObservations();
-};
-
-async function fetchAllObservations() {
-    try {
-        const response = await fetch('https://observations-backend.onrender.com/api/get_observations', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': '592a7f2d37881d292b6da3dacf16508628afc77dcf08c2deb196497e39f24bb6' // Replace with your API key
-            }
-        });
-        const data = await response.json();
-        if (data.status === 'success') {
-            data.observations.forEach(obs => {
-                addObservationMarker(obs);
-            });
-        } else {
-            console.error('Failed to fetch observations:', data.message);
-        }
-    } catch (error) {
-        console.error('Error fetching observations:', error);
-    }
 }
-
