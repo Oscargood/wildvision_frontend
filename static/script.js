@@ -542,3 +542,26 @@ initializeMap = () => {
     // Fetch and display all observations
     fetchAllObservations();
 };
+
+async function fetchAllObservations() {
+    try {
+        const response = await fetch('https://observations-backend.onrender.com/api/get_observations', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': '592a7f2d37881d292b6da3dacf16508628afc77dcf08c2deb196497e39f24bb6' // Replace with your API key
+            }
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            data.observations.forEach(obs => {
+                addObservationMarker(obs);
+            });
+        } else {
+            console.error('Failed to fetch observations:', data.message);
+        }
+    } catch (error) {
+        console.error('Error fetching observations:', error);
+    }
+}
+
