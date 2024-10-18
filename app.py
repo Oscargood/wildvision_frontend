@@ -1,5 +1,4 @@
-from flask import Flask, render_template, jsonify, send_from_directory
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, jsonify, send_from_directory, request
 from flask_cors import CORS
 from pymongo import MongoClient
 from datetime import datetime
@@ -7,12 +6,35 @@ import os
 import re
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
+from functools import wraps  # Needed for the decorator
+
+# Load environment variables from .env
+load_dotenv()
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# CORS Configuration
+# Update the resource path to match your API endpoints (assuming they start with /api/)
+CORS(app, resources={r"/api/*": {"origins": "https://www.wildvisionhunt.com/wildmap"}})
+
+# MongoDB Configuration
+MONGO_URI = os.getenv('MONGO_URI')
+if not MONGO_URI:
+    raise ValueError("No MONGO_URI found in environment variables.")
+client = MongoClient(MONGO_URI)
+db = client['wildvision']
+observations_collection = db['observations']
+
+# API Key for securing endpoints
+API_KEY = os.getenv('API_KEY')  # Ensure 'API_KEY' is set in your environment variables
+if not API_KEY:
+    raise ValueError("No API_KEY found in environment variables.")
 
 # Directory paths
-DIR = '/var/data/'  # deployed to render
-
+DIR = '/var/data/'  # Deployed to Render
 ANIMAL_DIR = os.path.join(DIR, 'static/animal/')
-WEATHER_DIR = os .path.join(DIR, 'static/weather/')
+WEATHER_DIR = os.path.join(DIR, 'static/weather/')
 VEGETATION_FILE = os.path.join(DIR, 'static/vegetation/vegetation_native.geojson')
 ANIMAL_LOCATION_FILE = os.path.join(DIR, 'static/animal/red_deer_location.geojson')
 
@@ -20,6 +42,10 @@ ANIMAL_LOCATION_FILE = os.path.join(DIR, 'static/animal/red_deer_location.geojso
 time_pattern = re.compile(r'_(\d{6})_(\d{2})\.geojson')
 
 def get_time_periods(directory, prefix):
+    """
+    Scans the specified directory for files starting with the given prefix
+    and extracts date and time information from their filenames.
+    """
     time_periods = []
     for root, dirs, files in os.walk(directory):
         for file in files:
@@ -33,19 +59,43 @@ def get_time_periods(directory, prefix):
                         'filename': file,
                         'time': readable_time
                     })
+    # Sort the time periods chronologically
     time_periods.sort(key=lambda x: x['time'])
     return time_periods
 
+def require_api_key(f):
+    """
+    Decorator to require an API key for accessing certain endpoints.
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        key = request.headers.get('x-api-key')
+        if not key or key != API_KEY:
+            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+# ---------------------- Route Definitions ---------------------- #
+
 @app.route('/')
 def home():
+    """
+    Root route that serves the main index.html page.
+    """
     return render_template('index.html')
 
 @app.route('/animal_behaviour_times', methods=['GET'])
 def animal_behaviour_times():
+    """
+    Returns a JSON list of animal behavior times.
+    """
     return jsonify(get_time_periods(ANIMAL_DIR, 'animal_behaviour'))
 
 @app.route('/weather_times', methods=['GET'])
 def weather_times():
+    """
+    Returns a JSON object containing weather-related time periods.
+    """
     weather_data = {
         'cloud_cover': get_time_periods(WEATHER_DIR, 'cloud_cover'),
         'rain': get_time_periods(WEATHER_DIR, 'rain'),
@@ -54,53 +104,35 @@ def weather_times():
     }
     return jsonify(weather_data)
 
-# Serve GeoJSON files
 @app.route('/data/<path:filename>', methods=['GET'])
 def serve_data(filename):
-    # Serve files from the static directory
+    """
+    Serves GeoJSON files from the specified data directory.
+    """
     return send_from_directory(DIR, filename)
 
-# Serve vegetation and animal location files (these don't change over time)
 @app.route('/vegetation', methods=['GET'])
 def vegetation():
+    """
+    Serves the vegetation GeoJSON file.
+    """
     return send_from_directory(os.path.dirname(VEGETATION_FILE), os.path.basename(VEGETATION_FILE))
 
 @app.route('/animal_location', methods=['GET'])
 def animal_location():
+    """
+    Serves the animal location GeoJSON file.
+    """
     return send_from_directory(os.path.dirname(ANIMAL_LOCATION_FILE), os.path.basename(ANIMAL_LOCATION_FILE))
-    
-# Load environment variables from .env
-load_dotenv()
 
-app = Flask(__name__)
-CORS(app, resources={r"/api_key/*": {"origins": "https://www.wildvisionhunt.com/wildmap"}})
+# ---------------------- API Endpoints ---------------------- #
 
-
-# MongoDB Configuration
-MONGO_URI = os.getenv('MONGO_URI')
-client = MongoClient(MONGO_URI)
-db = client['wildvision']
-observations_collection = db['observations']
-
-# Optional: API Key for securing endpoints
-API_KEY = os.getenv('592a7f2d37881d292b6da3dacf16508628afc77dcf08c2deb196497e39f24bb6')
-
-def require_api_key(f):
-    """
-    Decorator to require API key for certain endpoints.
-    """
-    from functools import wraps
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        key = request.headers.get('x-api-key')
-        if not key or key != API_KEY:
-            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
-        return f(*args, **kwargs)
-    return decorated
-    
 @app.route('/api/add_observation', methods=['POST'])
-@require_api_key  # Protect this endpoint
+@require_api_key  # Protect this endpoint with API key
 def add_observation():
+    """
+    Adds a new observation to the database.
+    """
     data = request.get_json()
     required_fields = ['species', 'gender', 'quantity', 'latitude', 'longitude', 'userId']
     
@@ -121,7 +153,7 @@ def add_observation():
         longitude = float(data['longitude'])
         user_id = str(data['userId']).strip()
         
-        # Optional: Further validation (e.g., check species against allowed list)
+        # Further validation
         if gender not in ['Male', 'Female', 'Unknown']:
             return jsonify({'status': 'error', 'message': 'Invalid gender value'}), 400
         if quantity < 1:
@@ -147,8 +179,11 @@ def add_observation():
         return jsonify({'status': 'error', 'message': 'Failed to add observation'}), 500
 
 @app.route('/api/get_observations', methods=['GET'])
-@require_api_key  # Protect this endpoint
+@require_api_key  # Protect this endpoint with API key
 def get_observations():
+    """
+    Retrieves all observations from the database.
+    """
     try:
         observations = list(observations_collection.find())
         for obs in observations:
@@ -161,6 +196,9 @@ def get_observations():
 @app.route('/api/get_observation/<id>', methods=['GET'])
 @require_api_key
 def get_observation(id):
+    """
+    Retrieves a single observation by its ID.
+    """
     try:
         observation = observations_collection.find_one({'_id': ObjectId(id)})
         if not observation:
@@ -174,6 +212,9 @@ def get_observation(id):
 @app.route('/api/delete_observation/<id>', methods=['DELETE'])
 @require_api_key
 def delete_observation(id):
+    """
+    Deletes an observation by its ID.
+    """
     try:
         result = observations_collection.delete_one({'_id': ObjectId(id)})
         if result.deleted_count == 0:
@@ -181,6 +222,17 @@ def delete_observation(id):
         return jsonify({'status': 'success', 'message': 'Observation deleted successfully'}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': 'Failed to delete observation'}), 500
+
+# ---------------------- Static File Serving ---------------------- #
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """
+    Serves static files from the 'static' directory.
+    """
+    return send_from_directory('static', filename)
+
+# ---------------------- Run the App ---------------------- #
 
 if __name__ == '__main__':
     app.run(debug=True)
