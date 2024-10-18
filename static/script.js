@@ -452,7 +452,7 @@ async function fetchAllObservations() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'your_secure_api_key_here' // Securely manage your API key
+                'x-api-key': '592a7f2d37881d292b6da3dacf16508628afc77dcf08c2deb196497e39f24bb6' // Securely manage your API key
             }
         });
         const data = await response.json();
@@ -475,7 +475,7 @@ async function submitObservation(observationData) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'your_secure_api_key_here' // Securely manage your API key
+                'x-api-key': '592a7f2d37881d292b6da3dacf16508628afc77dcf08c2deb196497e39f24bb6' // Securely manage your API key
             },
             body: JSON.stringify(observationData)
         });
