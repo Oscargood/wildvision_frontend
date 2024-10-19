@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 # CORS Configuration
 # Update the resource path to match your API endpoints (assuming they start with /api/)
-CORS(app, resources={r"/api/*": {"origins": "https://www.wildvisionhunt.com/wildmap"}})
+CORS(app, resources={r"/api/*": {"origins": "https://www.wildvisionhunt.com/wildmap", "https://wildvision.onrender.com"}})
 
 # MongoDB Configuration
 MONGO_URI = os.getenv('MONGO_URI')
@@ -28,6 +28,7 @@ observations_collection = db['observations']
 
 # API Key for securing endpoints
 API_KEY = os.getenv('API_KEY')  # Ensure 'API_KEY' is set in your environment variables
+
 if not API_KEY:
     raise ValueError("No API_KEY found in environment variables.")
 
