@@ -448,7 +448,7 @@ function addObservationMarker(obs) {
 // Function to fetch and display all observations on map load
 async function fetchAllObservations() {
     try {
-        const response = await fetch('https://observations-backend.onrender.com/api/get_observations', {
+        const response = await fetch('https://wildvision.onrender.com/api/get_observations', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -471,7 +471,7 @@ async function fetchAllObservations() {
 // Function to submit observation data to the backend
 async function submitObservation(observationData) {
     try {
-        const response = await fetch('https://observations-backend.onrender.com/api/add_observation', {
+        const response = await fetch('https://wildvision.onrender.com/api/add_observation', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
