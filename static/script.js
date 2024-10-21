@@ -299,8 +299,7 @@ let currentUserId = null;
 // Listen for messages from the parent window (Wix)
 window.addEventListener('message', (event) => {
     // For security, verify the origin of the message
-    // Replace 'https://www.wildvisionhunt.com' with your actual Wix site URL
-    const allowedOrigin = 'https://www.wildvisionhunt.com'; // Ensure no trailing slash
+    const allowedOrigin = 'https://www.wildvisionhunt/wildmap.com'; // Replace with your actual Wix site URL
     if (event.origin !== allowedOrigin) {
         console.warn('Origin not allowed:', event.origin);
         return;
@@ -312,6 +311,7 @@ window.addEventListener('message', (event) => {
         console.log('Received User ID:', currentUserId);
     }
 }, false);
+
 
 // Function to toggle observation mode
 function toggleObservationMode() {
