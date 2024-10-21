@@ -299,7 +299,7 @@ let currentUserId = null;
 // Listen for messages from the parent window (Wix)
 window.addEventListener('message', (event) => {
     // For security, verify the origin of the message
-    const allowedOrigin = 'https://www.wildvisionhunt/wildmap.com'; // Replace with your actual Wix site URL
+    const allowedOrigin = 'https://www.wildvisionhunt.com'; // Replace with your actual Wix site URL
     if (event.origin !== allowedOrigin) {
         console.warn('Origin not allowed:', event.origin);
         return;
@@ -452,8 +452,8 @@ async function fetchAllObservations() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': '592a7f2d37881d292b6da3dacf16508628afc77dcf08c2deb196497e39f24bb6' // Securely manage your API key
-            }
+            },
+            body: JSON.stringify(observationData)
         });
         const data = await response.json();
         if (data.status === 'success') {
