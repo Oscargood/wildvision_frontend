@@ -296,21 +296,25 @@ window.addEventListener('click', function(event) {
 // Variable to store the current user's ID received via postMessage
 let currentUserId = null;
 
-// Listen for messages from the parent window (Wix)
+// Inside Flask's frontend JavaScript (e.g., script.js)
 window.addEventListener('message', (event) => {
-    // For security, verify the origin of the message
     const allowedOrigin = 'https://www.wildvisionhunt.com'; // Replace with your actual Wix site URL
+
     if (event.origin !== allowedOrigin) {
         console.warn('Origin not allowed:', event.origin);
         return;
     }
 
     const data = event.data;
-    if (data.type === 'USER_ID') {
-        currentUserId = data.userId;
-        console.log('Received User ID:', currentUserId);
+    if (data.type === 'USER_DATA') {
+        const userId = data.userId;
+        const email = data.email;
+        const username = data.username;
+        // Handle the received data as needed, e.g., display on the map
+        console.log('Received User Data:', { userId, email, username });
     }
 }, false);
+
 
 
 // Function to toggle observation mode
