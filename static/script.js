@@ -300,22 +300,28 @@ let currentUserId = null;
 window.addEventListener('message', (event) => {
     const allowedOrigin = 'https://www.wildvisionhunt.com'; // Replace with your actual Wix site URL
 
+    // Security Check: Validate the origin of the incoming message
     if (event.origin !== allowedOrigin) {
         console.warn('Origin not allowed:', event.origin);
         return;
     }
 
     const data = event.data;
+
+    // Check if the message type is 'USER_DATA'
     if (data.type === 'USER_DATA') {
-        const userId = data.userId;
-        const email = data.email;
-        const username = data.username;
-        // Handle the received data as needed, e.g., display on the map
-        console.log('Received User Data:', { userId, email, username });
+        // Extract the required fields from the data
+        const loginEmail = data.loginEmail;
+        const status = data.status;
+        const contactId = data.contactId;
+
+        // Handle the received data as needed
+        console.log('Received User Data:', { loginEmail, status, contactId });
+
+        // Example: Update the UI or perform actions based on user data
+        // updateUserInterface(loginEmail, status, contactId);
     }
 }, false);
-
-
 
 // Function to toggle observation mode
 function toggleObservationMode() {
