@@ -195,6 +195,13 @@ def add_observation():
         logger.error(f"Invalid data types provided: {e}")
         return jsonify({'status': 'error', 'message': 'Invalid data types provided'}), 400
     
+    # Verify user ID with the 'users' collection
+    users_collection = db['users']  # Ensure you have a 'users' collection
+    user = users_collection.find_one({'userId': user_id})
+    if not user:
+        logger.error("Invalid userId provided.")
+        return jsonify({'status': 'error', 'message': 'Invalid userId'}), 400
+    
     # Create observation document
     observation = {
         'species': species,
@@ -213,6 +220,7 @@ def add_observation():
     except Exception as e:
         logger.error(f"Failed to add observation: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to add observation'}), 500
+
 
 @app.route('/api/get_observations', methods=['GET'])
 @require_api_key  # Protect this endpoint with API key
