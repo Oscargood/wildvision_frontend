@@ -5,37 +5,28 @@ html, body {
     font-family: 'Avenir', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-/* Wrapper/container for map and buttons with adjustable background */
-#container {
-    background-color: var(--container-bg-color, #2b2929); /* Adjustable background */
-    display: flex;
-    flex-direction: column; /* Stack the content vertically */
-    position: relative; /* Position relative for the toggle box and slider */
-    height: 100%;
-}
-
 /* Static Text Container Adjustments */
-#staticTextContainer {
+/* #staticTextContainer {
     position: absolute;
-    top: 10px;                        /* Distance from the top */
+    top: 10px;                       
     left: 50%;
-    transform: translateX(-50%);      /* Center horizontally */
-    z-index: 1000;                    /* Above the map */
-    width: 70%;                       /* Adjust width as needed */
-    max-width: calc(100% - 260px);    /* Prevent overlap with side menu */
+    transform: translateX(-50%);      
+    z-index: 1000;                    
+    width: 70%;                       
+    max-width: calc(100% - 260px);     */
     /* 260px = sideMenu width (250px) + right spacing (10px) */
-    transition: max-width 0.3s ease, left 0.3s ease; /* Smooth transition */
-}
+    /* transition: max-width 0.3s ease, left 0.3s ease; 
+} */
 
 /* Adjust #staticTextContainer when Side Menu is open */
-#container.menu-open #staticTextContainer {
+/* #map_container.menu-open #staticTextContainer {
     max-width: calc(100% - 260px);    /* Adjust if side menu width changes */
-    left: calc(50% - 125px);          /* Shift left by half side menu width */
-}
+    /* left: calc(50% - 125px);          /* Shift left by half side menu width */
+/*} */ 
 
 
 /* Static text box styling */
-#static_text_box {
+/* #static_text_box {
     padding: 10px;
     background-color: rgba(51, 51, 51, 0.8);
     color: #ffffff;
@@ -44,15 +35,16 @@ html, body {
     text-align: center;
     font-size: 16px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-}
+} */
 
 
 /* Adjust #container to accommodate side menu */
-#container {
+#map_container {
     display: flex;
     flex-direction: row; /* Stack content horizontally */
     height: 100%;
-    position: right;
+    position: relative;
+    right: 15px
 }
 
 /* Menu toggle button styling */
@@ -83,7 +75,7 @@ html, body {
 }
 
 /* Adjust #menuToggle position when Side Menu is open */
-#container.menu-open #menuToggle {
+#map_container.menu-open #menuToggle {
     right: 260px; /* sideMenu width (250px) + right spacing (10px) */
 }
 
@@ -283,7 +275,7 @@ button.selected {
 }
 
 /* Optional: Slightly fade the text when the side menu is open */
-#container.menu-open #day-time-selection {
+#map_container.menu-open #day-time-selection {
     opacity: 0.9; /* Slightly transparent */
 }
 
@@ -309,7 +301,7 @@ button.selected {
     }
 
     /* Adjust #menuToggle position when Side Menu is open */
-    #container.menu-open #menuToggle {
+    #map_container.menu-open #menuToggle {
         right: 210px; /* sideMenu width (200px) + right spacing (10px) */
     }
 
@@ -380,4 +372,161 @@ button.selected {
 /* Optional: Add some shadow for better visibility */
 .add-observation-button {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Add Observation Button Styling */
+.sign-up-button {
+    width: 30%;
+    padding: 10px;
+    margin: 10px 0; /* Space above and below the button */
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for Add Observation Button */
+.sign-up-button:hover {
+    background-color: #45a049;
+}
+
+/* Active state for Add Observation Button */
+.sign-up-button.active {
+    background-color: #388E3C; /* Darker green when active */
+}
+
+/* Optional: Add some shadow for better visibility */
+.sign-up-button {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Add Observation Button Styling */
+.login-button {
+    width: 30%;
+    padding: 10px;
+    margin: 10px 0; /* Space above and below the button */
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for Add Observation Button */
+.login-button:hover {
+    background-color: #45a049;
+}
+
+/* Active state for Add Observation Button */
+.login-button.active {
+    background-color: #388E3C; /* Darker green when active */
+}
+
+/* Optional: Add some shadow for better visibility */
+.login-button{
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal styling */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.4); 
+  }
+  
+  .modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 300px; 
+  }
+  
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+  }
+
+  .popup-content {
+    font-family: Arial, sans-serif;
+}
+
+/* Custom Leaflet Popup Styles */
+
+/* Main popup container */
+.leaflet-popup {
+    z-index: 1500; /* Ensure it's above other elements */
+    transition: opacity 0.3s ease;
+}
+
+.leaflet-popup-content-wrapper {
+    background-color: rgba(51, 51, 51, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    padding: 10px;
+}
+
+.leaflet-popup-tip {
+    background-color: rgba(51, 51, 51, 0.95);
+}
+
+.leaflet-popup-content {
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Styling buttons inside popups */
+.leaflet-popup-content button {
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.leaflet-popup-content button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+/* Ensure buttons are spaced properly */
+.popup-content button {
+    margin-right: 5px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .leaflet-popup-content {
+        font-size: 12px;
+    }
+
+    .leaflet-popup-content button {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
 }
