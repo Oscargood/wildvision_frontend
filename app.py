@@ -1,13 +1,20 @@
 from flask import Flask, render_template, jsonify, send_from_directory, request
 from flask_cors import CORS
 from pymongo import MongoClient
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import re
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
-from functools import wraps  # Needed for the decorator
+from bson.errors import InvalidId
+from functools import wraps
 import logging
+from flask_jwt_extended import (
+    JWTManager, create_access_token,
+    jwt_required, get_jwt_identity
+)
+from werkzeug.security import generate_password_hash, check_password_hash
+import uuid
 
 # ---------------------- Setup and Configuration ---------------------- #
 
@@ -22,15 +29,23 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # CORS Configuration
-# Since frontend and backend are on the same origin, CORS is not strictly necessary.
-# However, if you have subdomains or other specific needs, configure accordingly.
 CORS(app, resources={
     r"/api/*": {
-        "origins": "https://wildvision.onrender.com",
-        "methods": ["GET", "POST", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "x-api-key"]
+        "origins": "*",  # Adjust this as per your frontend domain
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    },
+    r"/wildvision/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
     }
 })
+
+# JWT Configuration
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Set this in your .env
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)  # Token expires in 1 hour
+jwt = JWTManager(app)
 
 # MongoDB Configuration
 MONGO_URI = os.getenv('MONGO_URI')
@@ -40,16 +55,11 @@ if not MONGO_URI:
 client = MongoClient(MONGO_URI)
 db = client['wildvision']
 observations_collection = db['observations']
-
-# API Key for securing endpoints
-API_KEY = os.getenv('API_KEY')  # Ensure 'API_KEY' is set in your environment variables
-
-if not API_KEY:
-    logger.error("API_KEY not found in environment variables.")
-    raise ValueError("API_KEY not found in environment variables.")
+users_collection = db['users']
+spots_collection = db['spots']  # Added collection for spots
 
 # Directory paths
-DIR = '/var/data/'  # Ensure this path exists and is correctly configured on Render
+DIR = '/var/data/'  # Ensure this path exists and is correctly configured
 ANIMAL_DIR = os.path.join(DIR, 'static/animal/')
 WEATHER_DIR = os.path.join(DIR, 'static/weather/')
 VEGETATION_FILE = os.path.join(DIR, 'static/vegetation/vegetation_native.geojson')
@@ -82,22 +92,26 @@ def get_time_periods(directory, prefix):
     time_periods.sort(key=lambda x: x['time'])
     return time_periods
 
-def require_api_key(f):
-    """
-    Decorator to require an API key for accessing certain endpoints.
-    Allows OPTIONS method for CORS preflight requests.
-    """
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if request.method == 'OPTIONS':
-            # Allow preflight requests to pass through without API key
-            return f(*args, **kwargs)
-        key = request.headers.get('x-api-key')
-        if not key or key != API_KEY:
-            logger.warning("Unauthorized access attempt.")
-            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
-        return f(*args, **kwargs)
-    return decorated
+def serialize_observation(obs):
+    return {
+        "id": str(obs["_id"]),
+        "species": obs.get("species", "N/A"),
+        "gender": obs.get("gender", "N/A"),
+        "quantity": obs.get("quantity", "N/A"),
+        "latitude": obs.get("latitude"),
+        "longitude": obs.get("longitude"),
+        "userId": obs.get("userId", "N/A"),
+        "timestamp": obs.get("timestamp").isoformat() + 'Z' if obs.get("timestamp") else "N/A"
+    }
+
+def serialize_spot(spot):
+    return {
+        "id": str(spot["_id"]),
+        "name": spot.get("name", "N/A"),
+        "coordinates": spot.get("coordinates", []),
+        "userId": spot.get("userId", "N/A"),
+        "timestamp": spot.get("timestamp").isoformat() + 'Z' if spot.get("timestamp") else "N/A"
+    }
 
 # ---------------------- Route Definitions ---------------------- #
 
@@ -108,62 +122,113 @@ def home():
     """
     return render_template('index.html')
 
-@app.route('/animal_behaviour_times', methods=['GET'])
-def animal_behaviour_times():
-    """
-    Returns a JSON list of animal behavior times.
-    """
-    logger.info("Serving animal_behaviour_times.")
-    return jsonify(get_time_periods(ANIMAL_DIR, 'animal_behaviour'))
-
-@app.route('/weather_times', methods=['GET'])
-def weather_times():
-    """
-    Returns a JSON object containing weather-related time periods.
-    """
-    logger.info("Serving weather_times.")
-    weather_data = {
-        'cloud_cover': get_time_periods(WEATHER_DIR, 'cloud_cover'),
-        'rain': get_time_periods(WEATHER_DIR, 'rain'),
-        'temperature': get_time_periods(WEATHER_DIR, 'temperature'),
-        'wind_speed': get_time_periods(WEATHER_DIR, 'wind_speed')
+# User Signup
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    if not data:
+        logging.error("No JSON data received in the signup request.")
+        return jsonify({'status': 'error', 'message': 'No data provided.'}), 400
+    
+    username = data.get('username', '').strip().lower()
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+    
+    if not username or not email or not password:
+        logging.error("Missing fields in signup request.")
+        return jsonify({'status': 'error', 'message': 'All fields are required.'}), 400
+    
+    # Check if user already exists
+    if users_collection.find_one({'$or': [{'username': username}, {'email': email}]}):
+        logging.error(f"User already exists: {username} or {email}")
+        return jsonify({'status': 'error', 'message': 'User already exists.'}), 409
+    
+    # Hash the password
+    hashed_password = generate_password_hash(password)
+    
+    # Create a unique userId (e.g., UUID)
+    user_id = str(uuid.uuid4())
+    
+    # Insert the new user into the database
+    user_data = {
+        'userId': user_id,
+        'username': username,
+        'email': email,
+        'password': hashed_password,
+        'created_at': datetime.utcnow()
     }
-    return jsonify(weather_data)
+    
+    users_collection.insert_one(user_data)
+    logging.info(f"User registered successfully: {username}")
+    
+    return jsonify({'status': 'success', 'message': 'User registered successfully.'}), 201
 
-@app.route('/data/<path:filename>', methods=['GET'])
-def serve_data(filename):
+# User Login
+@app.route('/api/login', methods=['POST'])
+def login():
     """
-    Serves GeoJSON files from the specified data directory.
+    Authenticates a user and returns a JWT access token.
     """
-    logger.info(f"Serving data file: {filename}")
-    return send_from_directory(DIR, filename)
+    data = request.get_json()
+    required_fields = ['username', 'password']
 
-@app.route('/vegetation', methods=['GET'])
-def vegetation():
-    """
-    Serves the vegetation GeoJSON file.
-    """
-    logger.info("Serving vegetation GeoJSON.")
-    return send_from_directory(os.path.dirname(VEGETATION_FILE), os.path.basename(VEGETATION_FILE))
+    # Validate required fields
+    if not data:
+        logger.error("No data provided in login request.")
+        return jsonify({'status': 'error', 'message': 'No data provided'}), 400
 
-@app.route('/animal_location', methods=['GET'])
-def animal_location():
-    """
-    Serves the animal location GeoJSON file.
-    """
-    logger.info("Serving animal location GeoJSON.")
-    return send_from_directory(os.path.dirname(ANIMAL_LOCATION_FILE), os.path.basename(ANIMAL_LOCATION_FILE))
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        logger.error(f"Missing fields: {', '.join(missing_fields)}")
+        return jsonify({'status': 'error', 'message': f"Missing fields: {', '.join(missing_fields)}"}), 400
 
-# ---------------------- API Endpoints ---------------------- #
+    username = data['username'].strip()
+    password = data['password']
 
+    # Fetch user from the database
+    user = users_collection.find_one({'username': username})
+    if not user:
+        logger.warning(f"Login failed for username: {username}")
+        return jsonify({'status': 'error', 'message': 'Invalid username or password'}), 401
+
+    # Verify password
+    if not check_password_hash(user['password'], password):
+        logger.warning(f"Login failed for username: {username} due to incorrect password.")
+        return jsonify({'status': 'error', 'message': 'Invalid username or password'}), 401
+
+    # Create JWT access token
+    access_token = create_access_token(identity=user['userId'])
+    logger.info(f"User {username} logged in successfully with userId: {user['userId']}")
+
+    return jsonify({'status': 'success', 'access_token': access_token}), 200
+
+# Get All Observations
+@app.route('/api/get_observations', methods=['GET'])
+@jwt_required()
+def get_observations():
+    """
+    Retrieves all observations from the database.
+    """
+    current_user_id = get_jwt_identity()
+    try:
+        observations = list(observations_collection.find())
+        serialized_observations = [serialize_observation(obs) for obs in observations]
+        logger.info(f"User {current_user_id} retrieved {len(serialized_observations)} observations.")
+        return jsonify({'status': 'success', 'observations': serialized_observations}), 200
+    except Exception as e:
+        logger.exception("Exception occurred while fetching observations.")
+        return jsonify({'status': 'error', 'message': 'Failed to fetch observations'}), 500
+
+# Add Observation
 @app.route('/api/add_observation', methods=['POST'])
-@require_api_key  # Protect this endpoint with API key
+@jwt_required()
 def add_observation():
     """
     Adds a new observation to the database.
     """
+    current_user_id = get_jwt_identity()
     data = request.get_json()
-    required_fields = ['species', 'gender', 'quantity', 'latitude', 'longitude', 'userId']
+    required_fields = ['species', 'gender', 'quantity', 'latitude', 'longitude']
     
     # Validate required fields
     if not data:
@@ -173,7 +238,7 @@ def add_observation():
     missing_fields = [field for field in required_fields if field not in data]
     if missing_fields:
         logger.error(f"Missing fields: {', '.join(missing_fields)}")
-        return jsonify({'status': 'error', 'message': f'Missing fields: {", ".join(missing_fields)}'}), 400
+        return jsonify({'status': 'error', 'message': f"Missing fields: {', '.join(missing_fields)}"}), 400
     
     # Extract and validate data
     try:
@@ -182,7 +247,6 @@ def add_observation():
         quantity = int(data['quantity'])
         latitude = float(data['latitude'])
         longitude = float(data['longitude'])
-        user_id = str(data['userId']).strip()
         
         # Further validation
         if gender not in ['Male', 'Female', 'Unknown']:
@@ -195,13 +259,6 @@ def add_observation():
         logger.error(f"Invalid data types provided: {e}")
         return jsonify({'status': 'error', 'message': 'Invalid data types provided'}), 400
     
-    # Verify user ID with the 'users' collection
-    users_collection = db['users']  # Ensure you have a 'users' collection
-    user = users_collection.find_one({'userId': user_id})
-    if not user:
-        logger.error("Invalid userId provided.")
-        return jsonify({'status': 'error', 'message': 'Invalid userId'}), 400
-    
     # Create observation document
     observation = {
         'species': species,
@@ -209,82 +266,327 @@ def add_observation():
         'quantity': quantity,
         'latitude': latitude,
         'longitude': longitude,
-        'userId': user_id,
+        'userId': current_user_id,
         'timestamp': datetime.utcnow()
     }
     
     try:
         result = observations_collection.insert_one(observation)
-        logger.info(f"Observation added with ID: {result.inserted_id}")
-        return jsonify({'status': 'success', 'message': 'Observation added successfully', 'id': str(result.inserted_id)}), 201
+        logger.info(f"User {current_user_id} added observation with ID: {result.inserted_id}")
+        # Fetch the inserted document
+        inserted_observation = observations_collection.find_one({"_id": result.inserted_id})
+        serialized_observation = serialize_observation(inserted_observation)
+        return jsonify({'status': 'success', 'message': 'Observation added successfully', 'observation': serialized_observation}), 201
     except Exception as e:
-        logger.error(f"Failed to add observation: {e}")
+        logger.exception(f"Failed to add observation: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to add observation'}), 500
 
-
-@app.route('/api/get_observations', methods=['GET'])
-@require_api_key  # Protect this endpoint with API key
-def get_observations():
-    """
-    Retrieves all observations from the database.
-    """
+# Edit Observation
+@app.route('/api/edit_observation', methods=['PUT'])
+@jwt_required()
+def edit_observation():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    obs_id = data.get('observation_id')
+    species = data.get('species')
+    gender = data.get('gender')
+    quantity = data.get('quantity')
+    
+    if not all([obs_id, species, gender, quantity]):
+        logger.error("Missing data in edit_observation request.")
+        return jsonify({"status": "error", "message": "Missing data."}), 400
+    
     try:
-        observations = list(observations_collection.find())
-        for obs in observations:
-            obs['_id'] = str(obs['_id'])
-            obs['timestamp'] = obs['timestamp'].isoformat() + 'Z'  # ISO format with UTC timezone
-        logger.info(f"Returning {len(observations)} observations.")
-        return jsonify({'status': 'success', 'observations': observations}), 200
-    except Exception as e:
-        logger.error(f"Failed to fetch observations: {e}")
-        return jsonify({'status': 'error', 'message': 'Failed to fetch observations'}), 500
-
-@app.route('/api/get_observation/<id>', methods=['GET'])
-@require_api_key
-def get_observation(id):
-    """
-    Retrieves a single observation by its ID.
-    """
+        object_id = ObjectId(obs_id)
+    except InvalidId:
+        logger.error(f"Invalid observation_id provided: {obs_id}")
+        return jsonify({"status": "error", "message": "Invalid observation ID."}), 400
+    
+    observation = observations_collection.find_one({"_id": object_id})
+    if not observation:
+        logger.error(f"Observation not found: {obs_id}")
+        return jsonify({"status": "error", "message": "Observation not found."}), 404
+    
+    if not observation.get('userId'):
+        logger.error(f"Observation {obs_id} has no 'userId' field.")
+        return jsonify({"status": "error", "message": "Observation data corrupted."}), 500
+    
+    if observation.get('userId') != user_id:
+        logger.warning(f"Unauthorized edit attempt by user {user_id} on observation {obs_id}.")
+        return jsonify({"status": "error", "message": "Unauthorized."}), 403
+    
     try:
-        observation = observations_collection.find_one({'_id': ObjectId(id)})
-        if not observation:
-            logger.warning(f"Observation with ID {id} not found.")
-            return jsonify({'status': 'error', 'message': 'Observation not found'}), 404
-        observation['_id'] = str(observation['_id'])
-        observation['timestamp'] = observation['timestamp'].isoformat() + 'Z'
-        logger.info(f"Returning observation with ID: {id}")
-        return jsonify({'status': 'success', 'observation': observation}), 200
+        updated = observations_collection.update_one(
+            {"_id": object_id},
+            {"$set": {
+                "species": species,
+                "gender": gender,
+                "quantity": quantity
+            }}
+        )
+        
+        if updated.modified_count > 0:
+            logger.info(f"Observation {obs_id} updated successfully by user {user_id}.")
+            return jsonify({"status": "success", "message": "Observation updated successfully."}), 200
+        else:
+            logger.info(f"No changes made to observation {obs_id} by user {user_id}.")
+            return jsonify({"status": "error", "message": "No changes made."}), 400
     except Exception as e:
-        logger.error(f"Failed to fetch observation: {e}")
-        return jsonify({'status': 'error', 'message': 'Failed to fetch observation'}), 500
+        logger.exception(f"Failed to update observation {obs_id}: {e}")
+        return jsonify({"status": "error", "message": "Failed to update observation."}), 500
 
-@app.route('/api/delete_observation/<id>', methods=['DELETE'])
-@require_api_key
-def delete_observation(id):
-    """
-    Deletes an observation by its ID.
-    """
+# Delete Observation
+@app.route('/api/delete_observation', methods=['DELETE'])
+@jwt_required()
+def delete_observation():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    obs_id = data.get('observation_id')
+    
+    if not obs_id:
+        logger.error("Missing observation_id in delete_observation request.")
+        return jsonify({"status": "error", "message": "Missing observation ID."}), 400
+    
     try:
-        result = observations_collection.delete_one({'_id': ObjectId(id)})
-        if result.deleted_count == 0:
-            logger.warning(f"Observation with ID {id} not found for deletion.")
-            return jsonify({'status': 'error', 'message': 'Observation not found'}), 404
-        logger.info(f"Observation with ID {id} deleted successfully.")
-        return jsonify({'status': 'success', 'message': 'Observation deleted successfully'}), 200
+        object_id = ObjectId(obs_id)
+    except InvalidId:
+        logger.error(f"Invalid observation_id provided: {obs_id}")
+        return jsonify({"status": "error", "message": "Invalid observation ID."}), 400
+    
+    observation = observations_collection.find_one({"_id": object_id})
+    if not observation:
+        logger.error(f"Observation not found: {obs_id}")
+        return jsonify({"status": "error", "message": "Observation not found."}), 404
+    
+    if not observation.get('userId'):
+        logger.error(f"Observation {obs_id} has no 'userId' field.")
+        return jsonify({"status": "error", "message": "Observation data corrupted."}), 500
+    
+    if observation.get('userId') != user_id:
+        logger.warning(f"Unauthorized delete attempt by user {user_id} on observation {obs_id}.")
+        return jsonify({"status": "error", "message": "Unauthorized."}), 403
+    
+    try:
+        deleted = observations_collection.delete_one({"_id": object_id})
+        
+        if deleted.deleted_count > 0:
+            logger.info(f"Observation {obs_id} deleted successfully by user {user_id}.")
+            return jsonify({"status": "success", "message": "Observation deleted successfully."}), 200
+        else:
+            logger.error(f"Failed to delete observation {obs_id} by user {user_id}.")
+            return jsonify({"status": "error", "message": "Failed to delete observation."}), 500
     except Exception as e:
-        logger.error(f"Failed to delete observation: {e}")
-        return jsonify({'status': 'error', 'message': 'Failed to delete observation'}), 500
+        logger.exception(f"Failed to delete observation {obs_id}: {e}")
+        return jsonify({"status": "error", "message": "Failed to delete observation."}), 500
 
-# ---------------------- Static File Serving ---------------------- #
-
-@app.route('/static/<path:filename>')
-def serve_static(filename):
+# Serve GeoJSON Files via /data/<filename>
+@app.route('/data/<path:filename>', methods=['GET'])
+@jwt_required()
+def serve_data(filename):
     """
-    Serves static files from the 'static' directory.
+    Serves GeoJSON files from the specified data directory.
     """
-    return send_from_directory('static', filename)
+    # Define allowed extensions
+    allowed_extensions = {'geojson'}
+    
+    # Check for allowed file extensions
+    if not ('.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions):
+        logger.warning(f"Attempt to access disallowed file type: {filename}")
+        return jsonify({'status': 'error', 'message': 'File type not allowed.'}), 403
+    
+    # Prevent directory traversal
+    if '..' in filename or filename.startswith('/'):
+        logger.warning(f"Attempt to perform directory traversal: {filename}")
+        return jsonify({'status': 'error', 'message': 'Invalid file path.'}), 403
+    
+    # Ensure the file exists
+    file_path = os.path.join(DIR, filename)
+    if not os.path.isfile(file_path):
+        logger.error(f"Data file not found: {filename}")
+        return jsonify({'status': 'error', 'message': 'File not found.'}), 404
+    
+    logger.info(f"User is requesting data file: {filename}")
+    return send_from_directory(DIR, filename)
 
+# Animal Location
+@app.route('/animal_location', methods=['GET'])
+@jwt_required()
+def animal_location():
+    """
+    Serves the animal location GeoJSON file.
+    """
+    animal_location_filename = os.path.basename(ANIMAL_LOCATION_FILE)
+    animal_location_dir = os.path.dirname(ANIMAL_LOCATION_FILE)
+    if not os.path.isfile(ANIMAL_LOCATION_FILE):
+        logger.error(f"Animal location GeoJSON file not found: {ANIMAL_LOCATION_FILE}")
+        return jsonify({'status': 'error', 'message': 'File not found.'}), 404
+    logger.info("Serving animal location GeoJSON.")
+    return send_from_directory(animal_location_dir, animal_location_filename)
+
+# ---------------------- New Endpoints for Favorite Spots ---------------------- #
+
+# Add Favorite Spot
+@app.route('/wildvision/spots', methods=['POST'])
+@jwt_required()
+def add_favorite_spot():
+    """
+    Adds a new favorite spot (polygon) to the database.
+    """
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    required_fields = ['name', 'coordinates']
+    
+    if not data:
+        logger.error("No data provided in add_favorite_spot request.")
+        return jsonify({'status': 'error', 'message': 'No data provided.'}), 400
+    
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        logger.error(f"Missing fields in add_favorite_spot: {', '.join(missing_fields)}")
+        return jsonify({'status': 'error', 'message': f"Missing fields: {', '.join(missing_fields)}"}), 400
+    
+    name = data.get('name').strip()
+    coordinates = data.get('coordinates')
+    
+    if not coordinates or not isinstance(coordinates, list):
+        logger.error("Invalid coordinates provided in add_favorite_spot.")
+        return jsonify({'status': 'error', 'message': 'Invalid coordinates provided.'}), 400
+    
+    # Create spot document
+    spot = {
+        'name': name,
+        'coordinates': coordinates,  # Expecting list of LatLng arrays
+        'userId': current_user_id,
+        'timestamp': datetime.utcnow()
+    }
+    
+    try:
+        result = spots_collection.insert_one(spot)
+        logger.info(f"User {current_user_id} added a favorite spot with ID: {result.inserted_id}")
+        return jsonify({'status': 'success', 'message': 'Favorite spot added successfully', 'id': str(result.inserted_id)}), 201
+    except Exception as e:
+        logger.exception(f"Failed to add favorite spot: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to add favorite spot.'}), 500
+
+# Get Favorite Spots
+@app.route('/wildvision/spots', methods=['GET'])
+@jwt_required()
+def get_favorite_spots():
+    """
+    Retrieves all favorite spots for the authenticated user.
+    """
+    current_user_id = get_jwt_identity()
+    try:
+        spots = list(spots_collection.find({'userId': current_user_id}))
+        serialized_spots = [serialize_spot(spot) for spot in spots]
+        logger.info(f"User {current_user_id} retrieved {len(serialized_spots)} favorite spots.")
+        return jsonify(serialized_spots), 200
+    except Exception as e:
+        logger.exception("Exception occurred while fetching favorite spots.")
+        return jsonify({'status': 'error', 'message': 'Failed to fetch favorite spots.'}), 500
+
+# Edit Favorite Spot
+@app.route('/wildvision/spots', methods=['PUT'])
+@jwt_required()
+def edit_favorite_spot():
+    """
+    Edits an existing favorite spot.
+    """
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    spot_id = data.get('spot_id')
+    name = data.get('name', '').strip()
+    coordinates = data.get('coordinates')  # New line to get coordinates
+
+    if not spot_id:
+        logger.error("Missing spot_id in edit_favorite_spot request.")
+        return jsonify({'status': 'error', 'message': 'Missing spot ID.'}), 400
+
+    try:
+        object_id = ObjectId(spot_id)
+    except InvalidId:
+        logger.error(f"Invalid spot_id provided: {spot_id}")
+        return jsonify({'status': 'error', 'message': 'Invalid spot ID.'}), 400
+
+    spot = spots_collection.find_one({"_id": object_id})
+    if not spot:
+        logger.error(f"Spot not found: {spot_id}")
+        return jsonify({'status': 'error', 'message': 'Favorite spot not found.'}), 404
+
+    if spot.get('userId') != current_user_id:
+        logger.warning(f"Unauthorized edit attempt by user {current_user_id} on spot {spot_id}.")
+        return jsonify({'status': 'error', 'message': 'Unauthorized.'}), 403
+
+    update_fields = {}
+    if name:
+        update_fields['name'] = name
+    if coordinates:
+        update_fields['coordinates'] = coordinates
+
+    if not update_fields:
+        logger.error("No update fields provided in edit_favorite_spot request.")
+        return jsonify({'status': 'error', 'message': 'No data to update.'}), 400
+
+    try:
+        updated = spots_collection.update_one(
+            {"_id": object_id},
+            {"$set": update_fields}
+        )
+
+        if updated.modified_count > 0:
+            logger.info(f"Spot {spot_id} updated successfully by user {current_user_id}.")
+            return jsonify({'status': 'success', 'message': 'Favorite spot updated successfully.'}), 200
+        else:
+            logger.info(f"No changes made to spot {spot_id} by user {current_user_id}.")
+            return jsonify({'status': 'error', 'message': 'No changes made.'}), 400
+    except Exception as e:
+        logger.exception(f"Failed to update spot {spot_id}: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to update favorite spot.'}), 500
+
+# Delete Favorite Spot
+@app.route('/wildvision/spots', methods=['DELETE'])
+@jwt_required()
+def delete_favorite_spot():
+    """
+    Deletes a favorite spot.
+    """
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    spot_id = data.get('spot_id')
+    
+    if not spot_id:
+        logger.error("Missing spot_id in delete_favorite_spot request.")
+        return jsonify({'status': 'error', 'message': 'Missing spot ID.'}), 400
+    
+    try:
+        object_id = ObjectId(spot_id)
+    except InvalidId:
+        logger.error(f"Invalid spot_id provided: {spot_id}")
+        return jsonify({'status': 'error', 'message': 'Invalid spot ID.'}), 400
+    
+    spot = spots_collection.find_one({"_id": object_id})
+    if not spot:
+        logger.error(f"Spot not found: {spot_id}")
+        return jsonify({'status': 'error', 'message': 'Favorite spot not found.'}), 404
+    
+    if spot.get('userId') != current_user_id:
+        logger.warning(f"Unauthorized delete attempt by user {current_user_id} on spot {spot_id}.")
+        return jsonify({'status': 'error', 'message': 'Unauthorized.'}), 403
+    
+    try:
+        deleted = spots_collection.delete_one({"_id": object_id})
+        
+        if deleted.deleted_count > 0:
+            logger.info(f"Spot {spot_id} deleted successfully by user {current_user_id}.")
+            return jsonify({'status': 'success', 'message': 'Favorite spot deleted successfully.'}), 200
+        else:
+            logger.error(f"Failed to delete spot {spot_id} by user {current_user_id}.")
+            return jsonify({'status': 'error', 'message': 'Failed to delete favorite spot.'}), 500
+    except Exception as e:
+        logger.exception(f"Failed to delete spot {spot_id}: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to delete favorite spot.'}), 500
 # ---------------------- Run the App ---------------------- #
 
 if __name__ == '__main__':
+    # It's recommended to set debug=False in production
     app.run(debug=True)
