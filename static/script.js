@@ -294,7 +294,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     } else if (layerType === 'wind_speed') {
         filename = `static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'cloud_cover') {
-        filename = `staatic/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'red_deer_location') {
         filename = `static/animal/red_deer_location.geojson`;
     // } else if (layerType === 'vegetation') {
