@@ -320,14 +320,13 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
         // Create and add GeoJSON layer to the specified layer group
         const geoJsonLayer = L.geoJSON(data, {
             style: function (feature) {
-                return {
-                    color: feature.properties.color || '#ff0000',
-                    fillColor: feature.properties.color || '#ff0000',
+                let styleOptions = {
                     weight: 0.5,
                     opacity: 0.25,
                     fillOpacity: 0.25,
                 };
-                if (layerType === 'red_deer_location.geojson') {
+
+                if (layerType === 'red_deer_location') {
                     // Map abundance levels to colours
                     let abundance = feature.properties.abundance;
                     let color;
@@ -361,7 +360,6 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
                 layer.bindPopup(popupContent);
             },
         });
-
         // Add the layer to the map
         layerGroup.addLayer(geoJsonLayer);
     } catch (err) {
