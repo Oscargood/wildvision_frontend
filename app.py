@@ -380,7 +380,7 @@ def delete_observation():
         return jsonify({"status": "error", "message": "Failed to delete observation."}), 500
 
 # Serve GeoJSON Files via /data/<filename>
-@app.route('/var/data/<path:filename>', methods=['GET'])
+@app.route('/data/<path:filename>', methods=['GET'])
 @jwt_required()
 def serve_data(filename):
     """
