@@ -6,12 +6,17 @@
     <title>Wildvision</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <!-- Leaflet.markercluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <!-- Leaflet.draw CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
     <!-- Your external CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 
 <body>
-    <div id="container">
+    <div id="map_container">
         <!-- Map container -->
         <div id="map"></div>
 
@@ -53,10 +58,10 @@
                 <input type="radio" name="layer-toggle" id="red_deer_location" class="layer-button">
                 Red Deer Distribution
             </label>
-            <label class="layer-label">
+            <!-- <label class="layer-label">
                 <input type="radio" name="layer-toggle" id="vegetation" class="layer-button">
                 Vegetation
-            </label>
+            </label> -->
             <label class="layer-label">
                 <input type="radio" name="layer-toggle" id="none" class="layer-button">
                 None
@@ -64,6 +69,21 @@
                         <!-- Add Observation Button -->
             <button id="addObservationBtn" class="add-observation-button">
                 Add Animal Observation
+            </button>
+            <!-- Add buttons to open the modals -->
+            <button id="openSignup" class="sign-up-button">Sign Up</button>
+            <button id="openLogin" class="login-button">Login</button>
+            <!-- Toggle Markers Button -->
+            <button id="toggleMarkersBtn" class="toggle-markers-button">
+            Hide Markers
+            </button>
+            <!-- Draw Polygon Button -->
+            <button id="drawPolygonBtn" class="draw-polygon-button">
+            Draw Favorite Spot
+            </button>
+                <!-- **Toggle Favorite Spots Button** -->
+            <button id="toggleSpotsBtn" class="toggle-spots-button">
+            Hide Favorite Spots
             </button>
         </div>
     </div> <!-- Closing #container -->
@@ -79,9 +99,98 @@
         <!-- <button id="DateTimePlayPause">Play</button> -->
     </div>
 
+    <!-- Add these to your existing HTML file -->
+<!-- Signup Modal -->
+<div id="signupModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeSignup">&times;</span>
+      <h2>Sign Up</h2>
+      <form id="signupForm">
+        <label for="signupUsername">Username:</label>
+        <input type="text" id="signupUsername" name="username" required>
+        
+        <label for="signupEmail">Email:</label>
+        <input type="email" id="signupEmail" name="email" required>
+        
+        <label for="signupPassword">Password:</label>
+        <input type="password" id="signupPassword" name="password" required>
+        
+        <div id="signupMessage"></div> <!-- Placeholder for messages -->
+        
+        <button type="submit">Sign Up</button>
+      </form>
+    </div>
+</div>
+
+  
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeLogin">&times;</span>
+      <h2>Login</h2>
+      <form id="loginForm">
+        <label for="loginUsername">Username:</label>
+        <input type="text" id="loginUsername" name="username" required>
+        
+        <label for="loginPassword">Password:</label>
+        <input type="password" id="loginPassword" name="password" required>
+        
+        <div id="loginMessage"></div> <!-- Placeholder for messages -->
+        
+        <button type="submit">Login</button>
+      </form>
+    </div>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeEditModal">&times;</span>
+        <h2>Edit Observation</h2>
+        <form id="editObservationForm">
+            <input type="hidden" id="editObservationId" name="observation_id">
+            
+            <label for="editSpecies">Species:</label>
+            <input type="text" id="editSpecies" name="species" required>
+            
+            <label for="editGender">Gender:</label>
+            <select id="editGender" name="gender" required>
+                <option value="" disabled>Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Unknown">Unknown</option>
+            </select>
+            
+            <label for="editQuantity">Quantity:</label>
+            <input type="number" id="editQuantity" name="quantity" min="1" required>
+            
+            <button type="submit">Update</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Spot Modal -->
+<div id="editSpotModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeEditSpotModal">&times;</span>
+        <h2>Edit Favorite Spot</h2>
+        <form id="editSpotForm">
+            <input type="hidden" id="editSpotId" name="spot_id">
+
+            <label for="editSpotName">Spot Name:</label>
+            <input type="text" id="editSpotName" name="name" required>
+
+            <button type="submit">Update</button>
+        </form>
+    </div>
+</div>
+
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Leaflet.markercluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <!-- Leaflet.draw JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-
 </body>
 </html>
