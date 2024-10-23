@@ -306,7 +306,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
 
     // Fetch the GeoJSON data
     try {
-        const res = await fetch(`/data/${filename}`, { // Adjusted to match backend route
+        const res = await fetch(`/var/data/${filename}`, { // Adjusted to match backend route
             headers: {
                 'Authorization': `Bearer ${getAccessToken()}`
             }
