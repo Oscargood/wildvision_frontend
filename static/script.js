@@ -327,6 +327,28 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
                     opacity: 0.25,
                     fillOpacity: 0.25,
                 };
+                 if (layerType === 'red_deer_location.geojson') {
+                    // Map abundance levels to colours
+                    let abundance = feature.properties.abundance;
+                    let color;
+                    if (abundance === 'H') {
+                        color = '#FF0000'; // Red for High
+                    } else if (abundance === 'M') {
+                        color = '#FFA500'; // Orange for Medium
+                    } else if (abundance === 'L') {
+                        color = '#008000'; // Green for Low
+                    } else {
+                        color = '#808080'; // Gray for unknown abundance
+                    }
+                    styleOptions.color = color;
+                    styleOptions.fillColor = color;
+                } else {
+                    // Use default or existing properties
+                    styleOptions.color = feature.properties.color || '#ff0000';
+                    styleOptions.fillColor = feature.properties.color || '#ff0000';
+                }
+
+                return styleOptions;
             },
             onEachFeature: function (feature, layer) {
                 const props = feature.properties;
