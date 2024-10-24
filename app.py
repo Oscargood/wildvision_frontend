@@ -60,10 +60,10 @@ spots_collection = db['spots']  # Added collection for spots
 
 # Directory paths
 DIR = os.path.join(app.root_path, 'static')  # Ensure this path exists and is correctly configured
-ANIMAL_DIR = os.path.join(DIR, '/animal/')
-WEATHER_DIR = os.path.join(DIR, '/weather/')
-VEGETATION_FILE = os.path.join(DIR, '/vegetation/vegetation_native.geojson')
-ANIMAL_LOCATION_FILE = os.path.join(DIR, '/animal/red_deer_location.geojson')
+ANIMAL_DIR = os.path.join(DIR, 'animal')
+WEATHER_DIR = os.path.join(DIR, 'weather')
+VEGETATION_FILE = os.path.join(DIR, 'vegetation/vegetation_native.geojson')
+ANIMAL_LOCATION_FILE = os.path.join(DIR, 'animal/red_deer_location.geojson')
 
 # Common regex for date and time in filenames
 time_pattern = re.compile(r'_(\d{6})_(\d{2})\.geojson')
