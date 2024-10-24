@@ -59,7 +59,7 @@ users_collection = db['users']
 spots_collection = db['spots']  # Added collection for spots
 
 # Directory paths
-DIR = '/var/data/static  # Ensure this path exists and is correctly configured
+DIR = '/var/data/static'  # Ensure this path exists and is correctly configured
 ANIMAL_DIR = os.path.join(DIR, 'animal')
 WEATHER_DIR = os.path.join(DIR, 'weather')
 VEGETATION_FILE = os.path.join(DIR, 'vegetation/vegetation_native.geojson')
