@@ -65,9 +65,6 @@ WEATHER_DIR = os.path.join(DIR, 'weather')
 VEGETATION_FILE = os.path.join(DIR, 'vegetation/vegetation_native.geojson')
 ANIMAL_LOCATION_FILE = os.path.join(DIR, 'animal/red_deer_location.geojson')
 
-logger.info(f"Filename received: {filename}")
-logger.info(f"Constructed file path: {file_path}")
-
 # Common regex for date and time in filenames
 time_pattern = re.compile(r'_(\d{6})_(\d{2})\.geojson')
 
