@@ -296,7 +296,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     } else if (layerType === 'cloud_cover') {
         filename = `static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'red_deer_location') {
-        filename = `static/animal/red_deer_location.geojson`;
+        filename = `animal/red_deer_location.geojson`;
     // } else if (layerType === 'vegetation') {
     //     filename = `vegetation/vegetation_native.geojson`;
     } else {
@@ -306,7 +306,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
 
     // Fetch the GeoJSON data
     try {
-        const res = await fetch(`/var/data/${filename}`, { // Adjusted to match backend route
+        const res = await fetch(`/data/${filename}`, { // Adjusted to match backend route
             headers: {
                 'Authorization': `Bearer ${getAccessToken()}`
             }
