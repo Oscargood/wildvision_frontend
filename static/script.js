@@ -90,6 +90,32 @@ const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
     attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)',
 });
 
+// Satellite layer from Esri
+const esriSatLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' +
+    'World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 17,
+    attribution: 'Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, ' +
+                 'AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+
+// Initialize the map and set its view
+const map = L.map("map", {
+    center: [-43.446754, 171.592242],
+    zoom: 7,
+    layers: [topo] // Start with the topo layer
+});
+
+// Create a baseMaps object to hold the base layers
+const baseMaps = {
+    "Topographic": topo,
+    "Satellite": esriSatLayer
+};
+
+// Add the layer control to the map at the 'topright' position
+const layerControl = L.control.layers(baseMaps, null, {
+    position: 'topleft' // Place it on the top-right
+}).addTo(map);
+
 // Add the topographic layer to the map by default
 topo.addTo(map);
 
