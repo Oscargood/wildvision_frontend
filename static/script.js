@@ -113,9 +113,6 @@ const layerControl = L.control.layers(baseMaps, null, {
     position: 'topleft' // Place it on the top-right
 }).addTo(map);
 
-// Add the topographic layer to the map by default
-topo.addTo(map);
-
 // Create layer groups for each type of data
 const animalLayerGroup = L.layerGroup();
 const tempLayerGroup = L.layerGroup();
