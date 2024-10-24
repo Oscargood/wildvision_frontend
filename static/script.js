@@ -95,12 +95,18 @@ const esriSatLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/se
                  'AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 });
 
-// Initialize the map and set its view
+// Disable the default zoom control
 const map = L.map("map", {
     center: [-43.446754, 171.592242],
     zoom: 7,
+    zoomControl: false, // Disable the default zoom control
     layers: [topo] // Start with the topo layer
 });
+
+// Add the zoom control at the top-right position
+L.control.zoom({
+    position: 'topright'
+}).addTo(map);
 
 // Create a baseMaps object to hold the base layers
 const baseMaps = {
@@ -108,9 +114,8 @@ const baseMaps = {
     "Satellite": esriSatLayer
 };
 
-// Add the layer control to the map at the 'topright' position
 const layerControl = L.control.layers(baseMaps, null, {
-    position: 'topleft' // Place it on the top-right
+    position: 'topright' // Place it on the top-right
 }).addTo(map);
 
 // Create layer groups for each type of data
