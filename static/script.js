@@ -360,7 +360,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
                     } else if (abundance === 'M') {
                         color = '#FFA500'; // Orange for Medium
                     } else if (abundance === 'L') {
-                        color = '#008000'; // Green for Low
+                        color = '#0000FF'; // Green for Low
                     } else {
                         color = '#808080'; // Gray for unknown abundance
                     }
