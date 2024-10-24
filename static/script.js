@@ -311,15 +311,15 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
     // Construct the filename based on layer type
     let filename;
     if (layerType === 'animal_behaviour') {
-        filename = `static/animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `animal/animal_behaviour_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'temperature') {
-        filename = `static/weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `weather/temperature_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'rain') {
-        filename = `static/weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `weather/rain_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'wind_speed') {
-        filename = `static/weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `weather/wind_speed_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'cloud_cover') {
-        filename = `static/weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
+        filename = `weather/cloud_cover_${selectedDate}_${selectedTimePeriod}.geojson`;
     } else if (layerType === 'red_deer_location') {
         filename = `animal/red_deer_location.geojson`;
     // } else if (layerType === 'vegetation') {
