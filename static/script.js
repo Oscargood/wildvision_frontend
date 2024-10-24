@@ -322,8 +322,8 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
             style: function (feature) {
                 let styleOptions = {
                     weight: 0.5,
-                    opacity: 0.3,
-                    fillOpacity: 0.3,
+                    opacity: 0.35,
+                    fillOpacity: 0.35,
                 };
 
                 if (layerType === 'red_deer_location') {
