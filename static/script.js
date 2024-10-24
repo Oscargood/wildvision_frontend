@@ -105,7 +105,7 @@ const map = L.map("map", {
 
 // Add the zoom control at the top-right position
 L.control.zoom({
-    position: 'topright'
+    position: 'topleft'
 }).addTo(map);
 
 // Create a baseMaps object to hold the base layers
@@ -115,7 +115,7 @@ const baseMaps = {
 };
 
 const layerControl = L.control.layers(baseMaps, null, {
-    position: 'topright' // Place it on the top-right
+    position: 'topleft' // Place it on the top-right
 }).addTo(map);
 
 // Create layer groups for each type of data
