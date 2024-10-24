@@ -82,9 +82,6 @@ window.addEventListener('click', (event) => {
 
 // ---------------------- Existing Code Continues ---------------------- //
 
-// Initialize the map and set its view to New Zealand with a zoom level
-const map = L.map("map").setView([-43.446754, 171.592242], 7);
-
 const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
     maxZoom: 17,
     attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)',
