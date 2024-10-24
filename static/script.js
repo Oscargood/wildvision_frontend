@@ -328,7 +328,7 @@ const plotDataLayer = async (layerGroup, layerType, dateIndex, timeIndex) => {
 
                 if (layerType === 'red_deer_location') {
                     // Map abundance levels to colours
-                    let abundance = feature.properties.abundance;
+                    let abundance = feature.properties.Abundance;
                     let color;
                     if (abundance === 'H') {
                         color = '#FF0000'; // Red for High
