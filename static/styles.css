@@ -530,3 +530,9 @@ button.selected {
         font-size: 12px;
     }
 }
+
+/* Apply grayscale filter to all Leaflet tiles */
+.leaflet-tile {
+    -webkit-filter: grayscale(100%); /* For Safari and older browsers */
+    filter: grayscale(100%);
+}
